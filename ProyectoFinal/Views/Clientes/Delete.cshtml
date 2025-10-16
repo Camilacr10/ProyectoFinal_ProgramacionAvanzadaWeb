@@ -1,0 +1,29 @@
+﻿@model ProyectoFinalBLL.DTOs.ClienteDto
+@{
+    ViewData["Title"] = "Eliminar cliente";
+}
+<h2 class="mb-3 text-danger">Eliminar cliente</h2>
+<p>¿Seguro que deseas eliminar este cliente?</p>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Identificación</dt>
+            <dd class="col-sm-9">@Model.Identificacion</dd>
+            <dt class="col-sm-3">Nombre</dt>
+            <dd class="col-sm-9">@Model.Nombre</dd>
+            <dt class="col-sm-3">Teléfono</dt>
+            <dd class="col-sm-9">@Model.Telefono</dd>
+            <dt class="col-sm-3">Email</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+            <dt class="col-sm-3">Dirección</dt>
+            <dd class="col-sm-9">@Model.Direccion</dd>
+        </dl>
+    </div>
+</div>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="IdCliente" />
+    <button type="submit" class="btn btn-danger">Eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>

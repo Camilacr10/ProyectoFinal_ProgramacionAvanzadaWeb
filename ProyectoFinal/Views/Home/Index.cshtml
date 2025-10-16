@@ -1,8 +1,96 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "SGC · Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+  
+    .hero-sgc {
+        background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+        color: #fff; border-radius: 1rem; padding: 2.5rem 1.75rem;
+        box-shadow: 0 0.5rem 1.25rem rgba(13,110,253,.25);
+    }
+    .hero-sgc h1 { font-weight: 700; letter-spacing:.2px; }
+    .quick-card {
+        transition: transform .12s ease, box-shadow .12s ease;
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 1rem;
+    }
+    .quick-card:hover { transform: translateY(-2px); box-shadow: 0 .75rem 1.25rem rgba(0,0,0,.08); }
+    .kpi {
+        border-radius: 1rem; background: #fff;
+        border: 1px solid rgba(0,0,0,.06);
+    }
+    .soft-badge { background: rgba(255,255,255,.25); color: #fff; }
+</style>
+
+<div class="container py-4">
+
+    <!-- Hero -->
+    <div class="hero-sgc mb-4">
+        <div class="row align-items-center g-3">
+            <div class="col-lg-8">
+                <span class="badge soft-badge mb-2">Sistema de Gestión de Créditos (SGC)</span>
+                <h1 class="mb-2">Seguimiento de Gestiones de Crédito</h1>
+                
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Accesos rápidos -->
+    <h5 class="mb-3">Accesos rápidos</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <a class="text-decoration-none" asp-controller="Clientes" asp-action="Index">
+                <div class="p-3 quick-card h-100 bg-white">
+                    <div class="fw-semibold mb-1">Clientes</div>
+                    <div class="text-muted small">Crear, editar, consultar y eliminar clientes.</div>
+                </div>
+            </a>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-3 quick-card h-100 bg-white opacity-75">
+                <div class="fw-semibold mb-1">Solicitudes</div>
+                <div class="text-muted small">Registro y reglas de negocio (pendiente).</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-3 quick-card h-100 bg-white opacity-75">
+                <div class="fw-semibold mb-1">Seguimiento / Tracking</div>
+                <div class="text-muted small">Historial de acciones y estados (pendiente).</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="p-3 quick-card h-100 bg-white opacity-75">
+                <div class="fw-semibold mb-1">Reportes</div>
+                <div class="text-muted small">Indicadores y exportaciones (pendiente).</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs / Estado -->
+    <h5 class="mb-3">Estado general</h5>
+    <div class="row g-3">
+        <div class="col-md-4">
+            <div class="p-3 kpi">
+                <div class="text-muted small">Clientes registrados</div>
+                <div class="fs-3 fw-bold">—</div>
+                <div class="text-muted small">Conecta luego a un conteo real desde BLL/DAL.</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 kpi">
+                <div class="text-muted small">Solicitudes en proceso</div>
+                <div class="fs-3 fw-bold">—</div>
+                <div class="text-muted small">Estados: Registrado / Enviada / Devuelta / Aprobada.</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 kpi">
+                <div class="text-muted small">Última actividad</div>
+                <div class="fs-6">Ajusta aquí un feed de eventos (pendiente).</div>
+            </div>
+        </div>
+    </div>
+
 </div>

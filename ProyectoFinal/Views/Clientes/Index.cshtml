@@ -1,0 +1,199 @@
+﻿@model IEnumerable<ProyectoFinalBLL.DTOs.ClienteDto>
+@{
+    ViewData["Title"] = "Clientes";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-table {
+        border-radius: 1rem;
+        border: 1px solid rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="page-header">
+    <h2 class="m-0">Clientes</h2>
+    <div class="d-flex gap-2">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
+        <a asp-action="Create" class="btn btn-primary">Nuevo</a>
+    </div>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay clientes registrados.</div>
+}
+else
+{
+    <div class="card-table">
+        <table class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Identificación</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Dirección</th>
+                    <th>Email</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    <tr>
+                        <td>@c.IdCliente</td>
+                        <td>@c.Identificacion</td>
+                        <td>@c.Nombre</td>
+                        <td>@c.Telefono</td>
+                        <td>@c.Direccion</td>
+                        <td>@c.Email</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary btn-edit"
+                                    data-id="@c.IdCliente">
+                                Editar
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="@c.IdCliente" data-name="@c.Nombre">
+                                Eliminar
+                            </button>
+
+                            <!-- Form oculto para DELETE (POST) -->
+                            <form asp-action="Delete"
+                                  asp-route-id="@c.IdCliente"
+                                  method="post"
+                                  class="d-inline delete-form-@c.IdCliente">
+                                @Html.AntiForgeryToken()
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Modal Bootstrap estático (se llenará por AJAX) -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="editModalBody">
+                <!-- Aquí se inyecta el formulario parcial _EditModal.cshtml -->
+                <div class="text-center text-muted py-5">Cargando…</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- SweetAlert2 (asegúrate también de tenerlo en _Layout) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Bootstrap Modal helper
+        const bsModal = new bootstrap.Modal(document.getElementById('editModal'));
+        const modalBody = document.getElementById('editModalBody');
+
+        // Abrir modal de edición: carga parcial por AJAX
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-edit');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            modalBody.innerHTML = `<div class="text-center text-muted py-5">Cargando…</div>`;
+
+            const res = await fetch(`@Url.Action("EditModal", "Clientes")/${id}`, { method: 'GET' });
+            const html = await res.text();
+            modalBody.innerHTML = html;
+            bsModal.show();
+
+            // enganchar envío del form dentro del modal (AJAX)
+            const form = modalBody.querySelector('#editForm');
+            if (form) {
+                form.addEventListener('submit', async (ev) => {
+                    ev.preventDefault();
+                    const formData = new FormData(form);
+                    const postRes = await fetch(`@Url.Action("EditModal", "Clientes")`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const contentType = postRes.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await postRes.json();
+                        if (data.ok) {
+                            bsModal.hide();
+                            await Swal.fire({ icon:'success', title:'Listo', text:data.msg });
+                            location.reload(); // recarga para ver cambios
+                        } else {
+                            await Swal.fire({ icon:'error', title:'Ups…', text:data.msg || 'No se pudo actualizar.' });
+                        }
+                    } else {
+                        // servidor devolvió de nuevo el parcial con validaciones -> reinyectar
+                        const htmlErr = await postRes.text();
+                        modalBody.innerHTML = htmlErr;
+                    }
+                });
+            }
+        });
+
+        // Confirmación de borrado con SweetAlert2
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-delete');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+
+            const res = await Swal.fire({
+                icon: 'warning',
+                title: '¿Eliminar cliente?',
+                html: `<div>Se eliminará <b>${name}</b>.</div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (res.isConfirmed) {
+                document.querySelector(`.delete-form-${id}`).submit();
+            }
+        });
+
+        // Mensajes de TempData (por si vienes de Create/Delete tradicionales)
+        @if (TempData["ok"] is string ok)
+        {
+            <text>
+                document.addEventListener('DOMContentLoaded', () => {
+                    Swal.fire({ icon:'success', title:'Listo', text:'@ok' });
+                });
+            </text>
+        }
+        @if (TempData["err"] is string err)
+        {
+            <text>
+                document.addEventListener('DOMContentLoaded', () => {
+                    Swal.fire({ icon:'error', title:'Ups…', text:'@err' });
+                });
+            </text>
+        }
+    </script>
+}
