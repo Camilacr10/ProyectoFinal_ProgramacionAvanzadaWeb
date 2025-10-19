@@ -15,6 +15,8 @@ builder.Services.AddDbContext<SgcDbContext>(options =>
 // 🔴 REGISTRA REPO Y SERVICIO (¡CLAVE!)
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 builder.Services.AddControllersWithViews();
 
