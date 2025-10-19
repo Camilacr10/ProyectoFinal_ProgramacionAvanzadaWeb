@@ -1,0 +1,178 @@
+﻿@model IEnumerable<ProyectoFinalBLL.Dtos.UsuarioDto>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<style>
+    .table thead th {
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="page-header">
+    <h2 class="m-0">Usuarios</h2>
+    <div class="d-flex gap-2">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
+        <a asp-action="Create" class="btn btn-primary">Nuevo</a>
+    </div>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay usuarios registrados.</div>
+}
+else
+{
+    <div class="card-table">
+        <table class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.IdUsuario</td>
+                        <td>@u.Nombre</td>
+                        <td>@u.Apellido</td>
+                        <td>@u.Correo</td>
+                        <td>@u.Rol</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary btn-edit"
+                                    data-id="@u.IdUsuario">
+                                Editar
+                            </button>
+
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="@u.IdUsuario" data-name="@u.Nombre @u.Apellido">
+                                Eliminar
+                            </button>
+
+                            <form asp-action="Delete"
+                                  asp-route-id="@u.IdUsuario"
+                                  method="post"
+                                  class="d-inline delete-form-@u.IdUsuario">
+                                @Html.AntiForgeryToken()
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+<!-- Modal Bootstrap estático -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title">Editar usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="editModalBody">
+                <div class="text-center text-muted py-5">Cargando…</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const bsModal = new bootstrap.Modal(document.getElementById('editModal'));
+        const modalBody = document.getElementById('editModalBody');
+
+        // Abrir modal de edición
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-edit');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            modalBody.innerHTML = `<div class="text-center text-muted py-5">Cargando…</div>`;
+
+            const res = await fetch(`@Url.Action("EditModal", "Usuarios")/${id}`);
+            const html = await res.text();
+            modalBody.innerHTML = html;
+            bsModal.show();
+
+            const form = modalBody.querySelector('#editForm');
+            if (form) {
+                form.addEventListener('submit', async (ev) => {
+                    ev.preventDefault();
+                    const formData = new FormData(form);
+                    const postRes = await fetch(`@Url.Action("EditModal", "Usuarios")`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const contentType = postRes.headers.get('content-type') || '';
+                    if (contentType.includes('application/json')) {
+                        const data = await postRes.json();
+                        if (data.ok) {
+                            bsModal.hide();
+                            await Swal.fire({ icon: 'success', title: 'Listo', text: data.msg });
+                            location.reload();
+                        } else {
+                            await Swal.fire({ icon: 'error', title: 'Ups…', text: data.msg || 'No se pudo actualizar.' });
+                        }
+                    } else {
+                        const htmlErr = await postRes.text();
+                        modalBody.innerHTML = htmlErr;
+                    }
+                });
+            }
+        });
+
+        // Confirmación de borrado
+        document.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.btn-delete');
+            if (!btn) return;
+
+            const id = btn.dataset.id;
+            const name = btn.dataset.name;
+
+            const res = await Swal.fire({
+                icon: 'warning',
+                title: '¿Eliminar usuario?',
+                html: `<div>Se eliminará <b>${name}</b>.</div>`,
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (res.isConfirmed) {
+                document.querySelector(`.delete-form-${id}`).submit();
+            }
+        });
+
+        // Mensajes TempData
+        @if (TempData["ok"] is string ok)
+        {
+                <text>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        Swal.fire({ icon: 'success', title: 'Listo', text: '@ok' });
+                    });
+                </text>
+        }
+        @if (TempData["err"] is string err)
+        {
+                <text>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        Swal.fire({ icon: 'error', title: 'Ups…', text: '@err' });
+                    });
+                </text>
+        }
+    </script>
+}
