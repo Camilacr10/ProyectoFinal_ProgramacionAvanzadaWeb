@@ -10,6 +10,8 @@ namespace ProyectoFinalDAL.Data
         public SgcDbContext(DbContextOptions<SgcDbContext> options) : base(options) { }
         public DbSet<Cliente> Clientes => Set<Cliente>();
 
+        public DbSet<Solicitud> Solicitudes => Set<Solicitud>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Cliente>().HasKey(c => c.IdCliente);
@@ -28,6 +30,18 @@ namespace ProyectoFinalDAL.Data
             });
 
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Solicitud>(e =>
+            {
+                e.HasKey(s => s.IdSolicitud);
+                e.Property(s => s.Monto).HasPrecision(18, 2).IsRequired();
+                e.Property(s => s.Estado).HasMaxLength(50).IsRequired();
+                e.Property(s => s.DocumentoPath).HasMaxLength(255);
+                e.HasOne(s => s.Cliente)
+                .WithMany()
+                .HasForeignKey(s => s.IdCliente)
+                .OnDelete(DeleteBehavior.Restrict);       
+            });
         }
     }
 }
