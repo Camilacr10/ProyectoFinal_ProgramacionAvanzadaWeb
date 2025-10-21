@@ -6,6 +6,7 @@ using ProyectoFinalDAL.Repositories;
 using ProyectoFinalBLL.Interfaces;
 using ProyectoFinalBLL.Services;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // DbContext (usa tu cadena de conexión)
@@ -15,6 +16,9 @@ builder.Services.AddDbContext<SgcDbContext>(options =>
 // 🔴 REGISTRA REPO Y SERVICIO (¡CLAVE!)
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
+
+builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
+builder.Services.AddScoped<ISolicitudService, SolicitudService>();
 
 builder.Services.AddControllersWithViews();
 

@@ -25,21 +25,22 @@
 
 <div class="container py-4">
 
-    <!-- Hero -->
+    <!-- HERO PRINCIPA-->
     <div class="hero-sgc mb-4">
         <div class="row align-items-center g-3">
             <div class="col-lg-8">
-                <span class="badge soft-badge mb-2">Sistema de Gestión de Créditos (SGC)</span>
+                <span class="badge soft-badge mb-2">Sistema de Gestión del Crédito (SGC)</span>
                 <h1 class="mb-2">Seguimiento de Gestiones de Crédito</h1>
-                
+                <p class="mb-0">Bienvenido al panel general. Desde aquí podrás acceder a los módulos según tu rol.</p>
             </div>
-            
         </div>
     </div>
 
     <!-- Accesos rápidos -->
     <h5 class="mb-3">Accesos rápidos</h5>
     <div class="row g-3 mb-4">
+
+        <!-- CLIENTES: visible para todos -->
         <div class="col-sm-6 col-lg-3">
             <a class="text-decoration-none" asp-controller="Clientes" asp-action="Index">
                 <div class="p-3 quick-card h-100 bg-white">
@@ -48,18 +49,39 @@
                 </div>
             </a>
         </div>
-        <div class="col-sm-6 col-lg-3">
-            <div class="p-3 quick-card h-100 bg-white opacity-75">
-                <div class="fw-semibold mb-1">Solicitudes</div>
-                <div class="text-muted small">Registro y reglas de negocio (pendiente).</div>
+
+        <!-- SOLICITUDES: solo para ServicioAlCliente o Administrador -->
+        @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Administrador"))
+        {
+            <div class="col-sm-6 col-lg-3">
+                <a class="text-decoration-none" asp-controller="Solicitudes" asp-action="Index">
+                    <div class="p-3 quick-card h-100 bg-white">
+                        <div class="fw-semibold mb-1">Solicitudes</div>
+                        <div class="text-muted small">Registro y reglas de negocio de créditos.</div>
+                    </div>
+                </a>
             </div>
-        </div>
+        }
+        else
+        {
+            <!-- Si el usuario NO tiene permiso, muestra un card desactivado -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 quick-card h-100 bg-white opacity-75">
+                    <div class="fw-semibold mb-1">Solicitudes</div>
+                    <div class="text-muted small">Acceso restringido al personal autorizado.</div>
+                </div>
+            </div>
+        }
+
+        <!-- SEGUIMIENTO -->
         <div class="col-sm-6 col-lg-3">
             <div class="p-3 quick-card h-100 bg-white opacity-75">
                 <div class="fw-semibold mb-1">Seguimiento / Tracking</div>
                 <div class="text-muted small">Historial de acciones y estados (pendiente).</div>
             </div>
         </div>
+
+        <!-- REPORTES -->
         <div class="col-sm-6 col-lg-3">
             <div class="p-3 quick-card h-100 bg-white opacity-75">
                 <div class="fw-semibold mb-1">Reportes</div>
@@ -68,7 +90,7 @@
         </div>
     </div>
 
-    <!-- KPIs / Estado -->
+    <!-- KPIs / Estado general -->
     <h5 class="mb-3">Estado general</h5>
     <div class="row g-3">
         <div class="col-md-4">
@@ -92,5 +114,4 @@
             </div>
         </div>
     </div>
-
 </div>

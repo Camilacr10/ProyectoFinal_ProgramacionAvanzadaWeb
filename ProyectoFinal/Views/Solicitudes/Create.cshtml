@@ -1,0 +1,59 @@
+﻿@model ProyectoFinalBLL.DTOs.SolicitudDto
+@{
+    ViewData["Title"] = "Crear Solicitud de Crédito";
+}
+
+<h2>Crear Nueva Solicitud</h2>
+
+<form id="formCrearSolicitud" asp-action="Create" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="IdCliente" class="form-label"></label>
+        <input asp-for="IdCliente" id="IdCliente" class="form-control" />
+        <span asp-validation-for="IdCliente" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Monto" class="form-label"></label>
+        <input asp-for="Monto" id="Monto" class="form-control" />
+        <span asp-validation-for="Monto" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Documento adjunto</label>
+        <input type="file" id="Documento" name="Documento" class="form-control" />
+        <span asp-validation-for="DocumentoPath" class="text-danger"></span>
+    </div>
+
+    <button type="button" id="btnGuardarSolicitud" class="btn btn-success">Crear</button>
+    <a asp-action="Index" class="btn btn-secondary">Regresar</a>
+</form>
+
+<!-- Modal de Confirmacion -->
+<div class="modal fade" id="modalSolicitudExitosa" tabindex="-1" aria-labelledby="modalSolicitudExitosaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="modalSolicitudExitosaLabel">Solicitud creada</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="mensajeSolicitudExitosa"></p>
+            </div>
+
+            <div class="modal-footer">
+                <a href="/Solicitudes/Index" class="btn btn-primary">Ir a Solicitudes</a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/solicitudes.js" asp-append-version="true"></script>
+}
