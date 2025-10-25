@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinalBLL.DTOs;
 using ProyectoFinalDAL.Entidades;
 
 namespace ProyectoFinal.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Solo admin puede gestionar usuarios
+    [Authorize(Roles = "Administrador")] // Solo admin puede acceder
     public class UsuarioController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -18,83 +17,90 @@ namespace ProyectoFinal.Controllers
             _roleManager = roleManager;
         }
 
-        // GET: /Usuario
-        public IActionResult Index()
+        // Listado de usuarios
+        public async Task<IActionResult> Index()
         {
             var usuarios = _userManager.Users.ToList();
-            return View(usuarios);
+            var model = new List<UsuarioViewModel>();
+
+            foreach (var u in usuarios)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                model.Add(new UsuarioViewModel
+                {
+                    Id = u.Id,
+                    NombreCompleto = u.NombreCompleto,
+                    Email = u.Email,
+                    Roles = roles
+                });
+            }
+
+            return View(model);
         }
 
-        // GET: /Usuario/Create
-        public IActionResult Create()
+        // Crear usuario
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Roles = _roleManager.Roles.ToList();
-            return View(new UsuarioViewModel());
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            return View();
         }
 
-        // POST: /Usuario/Create
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UsuarioViewModel model)
+        public async Task<IActionResult> Create(CreateUsuarioViewModel model)
         {
             if (!ModelState.IsValid)
-            {
-                ViewBag.Roles = _roleManager.Roles.ToList();
                 return View(model);
-            }
 
             var user = new ApplicationUser
             {
                 UserName = model.Email,
                 Email = model.Email,
-                NombreCompleto = model.NombreCompleto
+                NombreCompleto = model.NombreCompleto,
+                EmailConfirmed = true
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password!);
-            if (result.Succeeded)
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, model.Role);
-                TempData["ok"] = "Usuario creado correctamente.";
-                return RedirectToAction(nameof(Index));
+                foreach (var err in result.Errors)
+                    ModelState.AddModelError("", err.Description);
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return View(model);
             }
 
-            foreach (var error in result.Errors)
-                ModelState.AddModelError(string.Empty, error.Description);
+            if (model.Roles != null)
+            {
+                await _userManager.AddToRolesAsync(user, model.Roles);
+            }
 
-            ViewBag.Roles = _roleManager.Roles.ToList();
-            return View(model);
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: /Usuario/Edit/id
+        // Editar usuario
         public async Task<IActionResult> Edit(string id)
         {
+            if (id == null) return NotFound();
+
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            var roles = await _userManager.GetRolesAsync(user);
-
-            var model = new UsuarioViewModel
+            var model = new EditUsuarioViewModel
             {
                 Id = user.Id,
                 NombreCompleto = user.NombreCompleto,
                 Email = user.Email,
-                Role = roles.FirstOrDefault() ?? ""
+                Roles = await _userManager.GetRolesAsync(user)
             };
 
-            ViewBag.Roles = _roleManager.Roles.ToList();
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
             return View(model);
         }
 
-        // POST: /Usuario/Edit/id
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UsuarioViewModel model)
+        public async Task<IActionResult> Edit(EditUsuarioViewModel model)
         {
             if (!ModelState.IsValid)
-            {
-                ViewBag.Roles = _roleManager.Roles.ToList();
                 return View(model);
-            }
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
@@ -106,39 +112,72 @@ namespace ProyectoFinal.Controllers
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)
             {
-                foreach (var error in result.Errors)
-                    ModelState.AddModelError(string.Empty, error.Description);
-
-                ViewBag.Roles = _roleManager.Roles.ToList();
+                foreach (var err in result.Errors)
+                    ModelState.AddModelError("", err.Description);
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
                 return View(model);
             }
 
-            // Actualizar rol
+            // Actualizar roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
-            await _userManager.AddToRoleAsync(user, model.Role);
 
-            TempData["ok"] = "Usuario actualizado correctamente.";
+            if (model.Roles != null)
+                await _userManager.AddToRolesAsync(user, model.Roles);
+
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: /Usuario/Delete/id
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        // Eliminar usuario
         public async Task<IActionResult> Delete(string id)
+        {
+            if (id == null) return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            return View(new UsuarioViewModel
+            {
+                Id = user.Id,
+                NombreCompleto = user.NombreCompleto,
+                Email = user.Email,
+                Roles = await _userManager.GetRolesAsync(user)
+            });
+        }
+
+        [HttpPost, ActionName("Delete")]
+        public async Task<IActionResult> DeleteConfirmed(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            var result = await _userManager.DeleteAsync(user);
-            if (result.Succeeded)
-            {
-                TempData["ok"] = "Usuario eliminado correctamente.";
-                return RedirectToAction(nameof(Index));
-            }
-
-            TempData["error"] = string.Join(", ", result.Errors.Select(e => e.Description));
+            await _userManager.DeleteAsync(user);
             return RedirectToAction(nameof(Index));
         }
+    }
+
+    // ViewModels
+    public class UsuarioViewModel
+    {
+        public string Id { get; set; } = "";
+        public string NombreCompleto { get; set; } = "";
+        public string Email { get; set; } = "";
+        public IList<string> Roles { get; set; } = new List<string>();
+    }
+
+    public class CreateUsuarioViewModel
+    {
+        public string NombreCompleto { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Password { get; set; } = "";
+        public IList<string>? Roles { get; set; }
+    }
+
+    public class EditUsuarioViewModel
+    {
+        public string Id { get; set; } = "";
+        public string NombreCompleto { get; set; } = "";
+        public string Email { get; set; } = "";
+        public IList<string>? Roles { get; set; }
     }
 }
