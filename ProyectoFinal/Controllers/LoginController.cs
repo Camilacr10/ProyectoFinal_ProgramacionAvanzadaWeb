@@ -1,77 +1,40 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinalBLL.Interfaces;
-using ProyectoFinalBLL.DTOs;
-using System.Security.Claims;
+using ProyectoFinalDAL.Entidades;
 
-namespace ProyectoFinal.Controllers
+public class LoginController : Controller
 {
-    public class LoginController : Controller
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+
+    public LoginController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager)
     {
-        private readonly IUsuarioService _usuarioService;
+        _signInManager = signInManager;
+        _userManager = userManager;
+    }
 
-        public LoginController(IUsuarioService usuarioService)
+    [HttpGet]
+    public IActionResult Index() => View();
+
+    [HttpPost]
+    public async Task<IActionResult> Index(string correo, string clave)
+    {
+        var user = await _userManager.FindByEmailAsync(correo);
+        if (user == null || !await _userManager.CheckPasswordAsync(user, clave))
         {
-            _usuarioService = usuarioService;
-        }
-
-        // GET: Login
-        [HttpGet]
-        public IActionResult Index()
-        {
-            // Si el usuario ya está autenticado, redirige al Home
-            if (User.Identity != null && User.Identity.IsAuthenticated)
-                return RedirectToAction("Index", "Home");
-
-            return View(new LoginDto());
-        }
-
-        // POST: Login
-        [HttpPost]
-        public async Task<IActionResult> Index(LoginDto login)
-        {
-            if (!ModelState.IsValid)
-                return View(login);
-
-            // Buscar usuario por correo
-            var user = await _usuarioService.GetByCorreoAsync(login.Correo);
-            if (user == null || user.Clave != login.Clave)
-            {
-                ModelState.AddModelError("", "Correo o contraseña incorrectos.");
-                return View(login);
-            }
-
-            // Crear claims con información del usuario
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, user.NombreCompleto),
-                new Claim(ClaimTypes.Email, user.Correo),
-                new Claim(ClaimTypes.Role, user.Rol),
-                new Claim("IdUsuario", user.IdUsuario.ToString())
-            };
-
-            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(identity);
-
-            // Iniciar sesión con cookies
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-            // Redirigir automáticamente al panel principal
-            return RedirectToAction("Index", "Home");
-        }
-
-        // GET: Logout
-        public async Task<IActionResult> Logout()
-        {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index");
-        }
-
-        // GET: Access Denied
-        public IActionResult AccessDenied()
-        {
+            ModelState.AddModelError("", "Correo o contraseña incorrectos.");
             return View();
         }
+
+        await _signInManager.SignInAsync(user, isPersistent: false);
+        return RedirectToAction("Index", "Home");
     }
+
+    public async Task<IActionResult> Logout()
+    {
+        await _signInManager.SignOutAsync();
+        return RedirectToAction("Index");
+    }
+
+    public IActionResult AccessDenied() => View();
 }

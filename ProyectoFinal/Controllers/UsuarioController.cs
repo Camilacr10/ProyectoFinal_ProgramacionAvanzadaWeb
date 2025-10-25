@@ -1,74 +1,144 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using ProyectoFinalBLL.DTOs;
-using ProyectoFinalBLL.Interfaces;
+using ProyectoFinalDAL.Entidades;
 
 namespace ProyectoFinal.Controllers
 {
-    [Authorize] // requiere login
+    [Authorize(Roles = "Administrador")] // Solo admin puede gestionar usuarios
     public class UsuarioController : Controller
     {
-        private readonly IUsuarioService _service;
-        public UsuarioController(IUsuarioService service) => _service = service;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Index()
+        public UsuarioController(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
-            var list = await _service.GetAllAsync();
-            return View(list);
+            _userManager = userManager;
+            _roleManager = roleManager;
         }
 
-        [Authorize(Roles = "Admin")]
-        public IActionResult Create() => View(new UsuarioDto());
-
-        [HttpPost, Authorize(Roles = "Admin"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(UsuarioDto dto)
+        // GET: /Usuario
+        public IActionResult Index()
         {
-            if (!ModelState.IsValid) return View(dto);
-            await _service.CreateAsync(dto);
-            TempData["ok"] = "Usuario creado.";
+            var usuarios = _userManager.Users.ToList();
+            return View(usuarios);
+        }
+
+        // GET: /Usuario/Create
+        public IActionResult Create()
+        {
+            ViewBag.Roles = _roleManager.Roles.ToList();
+            return View(new UsuarioViewModel());
+        }
+
+        // POST: /Usuario/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(UsuarioViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                return View(model);
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                NombreCompleto = model.NombreCompleto
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password!);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, model.Role);
+                TempData["ok"] = "Usuario creado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
+            ViewBag.Roles = _roleManager.Roles.ToList();
+            return View(model);
+        }
+
+        // GET: /Usuario/Edit/id
+        public async Task<IActionResult> Edit(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var model = new UsuarioViewModel
+            {
+                Id = user.Id,
+                NombreCompleto = user.NombreCompleto,
+                Email = user.Email,
+                Role = roles.FirstOrDefault() ?? ""
+            };
+
+            ViewBag.Roles = _roleManager.Roles.ToList();
+            return View(model);
+        }
+
+        // POST: /Usuario/Edit/id
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(UsuarioViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            user.NombreCompleto = model.NombreCompleto;
+            user.Email = model.Email;
+            user.UserName = model.Email;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError(string.Empty, error.Description);
+
+                ViewBag.Roles = _roleManager.Roles.ToList();
+                return View(model);
+            }
+
+            // Actualizar rol
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            await _userManager.AddToRoleAsync(user, model.Role);
+
+            TempData["ok"] = "Usuario actualizado correctamente.";
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Edit(int id)
+        // POST: /Usuario/Delete/id
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string id)
         {
-            var dto = await _service.GetByIdAsync(id);
-            return dto is null ? NotFound() : View(dto);
-        }
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
 
-        [HttpPost, Authorize(Roles = "Admin"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(UsuarioDto dto)
-        {
-            if (!ModelState.IsValid) return View(dto);
-            await _service.UpdateAsync(dto);
-            TempData["ok"] = "Usuario actualizado.";
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["ok"] = "Usuario eliminado correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            TempData["error"] = string.Join(", ", result.Errors.Select(e => e.Description));
             return RedirectToAction(nameof(Index));
-        }
-
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var dto = await _service.GetByIdAsync(id);
-            return dto is null ? NotFound() : View(dto);
-        }
-
-        [HttpPost, ActionName("Delete"), Authorize(Roles = "Admin"), ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            await _service.DeleteAsync(id);
-            TempData["ok"] = "Usuario eliminado.";
-            return RedirectToAction(nameof(Index));
-        }
-
-        // Los usuarios normales pueden ver su propio perfil
-        public async Task<IActionResult> Profile()
-        {
-            var correo = User.Identity?.Name;
-            if (correo == null) return Unauthorized();
-
-            var dto = await _service.GetByCorreoAsync(correo);
-            return dto is null ? NotFound() : View(dto);
         }
     }
 }

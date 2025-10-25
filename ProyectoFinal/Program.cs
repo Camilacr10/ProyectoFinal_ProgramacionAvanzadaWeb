@@ -1,60 +1,49 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ProyectoFinalBLL.Interfaces;
-using ProyectoFinalBLL.Services;
 using ProyectoFinalDAL.Data;
-using ProyectoFinalDAL.Repositories;
+using ProyectoFinalDAL.Entidades;
+using ProyectoFinalDAL.Data.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🧩 CONFIGURACIÓN DEL DbContext
+// 🔹 DbContext con SQL Server
 builder.Services.AddDbContext<SgcDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.MigrationsAssembly("ProyectoFinalDAL")
-    )
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// 🔴 REGISTRA REPOS Y SERVICIOS
-builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
-builder.Services.AddScoped<IClienteService, ClienteService>();
+// 🔹 Identity con ApplicationUser
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<SgcDbContext>()
+    .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
-builder.Services.AddScoped<ISolicitudService, SolicitudService>();
+// 🔹 Cookies
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Login/Index";
+    options.AccessDeniedPath = "/Login/AccessDenied";
+});
 
-builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-
+// 🔹 MVC
 builder.Services.AddControllersWithViews();
-
-// 🔑 AUTENTICACIÓN Y AUTORIZACIÓN
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Login/Index";
-        options.AccessDeniedPath = "/Login/AccessDenied";
-    });
-
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// 🌐 MANEJO DE ERRORES Y PIPELINE
-if (!app.Environment.IsDevelopment())
+// 🔹 Ejecutar Seeder
+using (var scope = app.Services.CreateScope())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    var services = scope.ServiceProvider;
+    await SeedData.InitializeAsync(services);
 }
 
+// 🔹 Pipeline
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// 🔑 IMPORTANTE: primero autenticación, luego autorización
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 🌐 RUTAS
+// 🔹 Ruta por defecto al login
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}"

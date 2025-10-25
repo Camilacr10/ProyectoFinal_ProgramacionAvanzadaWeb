@@ -40,7 +40,6 @@
 </style>
 
 <div class="container py-4">
-
     <!-- HERO PRINCIPAL -->
     <div class="hero-sgc mb-4">
         <div class="row align-items-center g-3">
@@ -66,30 +65,8 @@
             </a>
         </div>
 
-        <!-- USUARIOS: solo Admin -->
-        @if (User.IsInRole("Admin"))
-        {
-            <div class="col-sm-6 col-lg-3">
-                <a class="text-decoration-none" asp-controller="Usuario" asp-action="Index">
-                    <div class="p-3 quick-card h-100 bg-white">
-                        <div class="fw-semibold mb-1">Usuarios</div>
-                        <div class="text-muted small">Crear, editar, consultar y eliminar usuarios.</div>
-                    </div>
-                </a>
-            </div>
-        }
-        else
-        {
-            <div class="col-sm-6 col-lg-3">
-                <div class="p-3 quick-card h-100 bg-white opacity-75">
-                    <div class="fw-semibold mb-1">Usuarios</div>
-                    <div class="text-muted small">Acceso restringido solo a administradores.</div>
-                </div>
-            </div>
-        }
-
-        <!-- SOLICITUDES: solo para ServicioAlCliente o Administrador -->
-        @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Admin"))
+        <!-- SOLICITUDES: ServicioAlCliente o Administrador -->
+        @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Administrador"))
         {
             <div class="col-sm-6 col-lg-3">
                 <a class="text-decoration-none" asp-controller="Solicitudes" asp-action="Index">
@@ -100,31 +77,30 @@
                 </a>
             </div>
         }
-        else
+
+        <!-- USUARIOS: solo Administrador -->
+        @if (User.IsInRole("Administrador"))
         {
             <div class="col-sm-6 col-lg-3">
-                <div class="p-3 quick-card h-100 bg-white opacity-75">
-                    <div class="fw-semibold mb-1">Solicitudes</div>
-                    <div class="text-muted small">Acceso restringido al personal autorizado.</div>
-                </div>
+                <a class="text-decoration-none" asp-controller="Usuario" asp-action="Index">
+                    <div class="p-3 quick-card h-100 bg-white">
+                        <div class="fw-semibold mb-1">Usuarios</div>
+                        <div class="text-muted small">Gestión de usuarios y roles del sistema.</div>
+                    </div>
+                </a>
             </div>
         }
 
-        <!-- SEGUIMIENTO -->
-        <div class="col-sm-6 col-lg-3">
-            <div class="p-3 quick-card h-100 bg-white opacity-75">
-                <div class="fw-semibold mb-1">Seguimiento / Tracking</div>
-                <div class="text-muted small">Historial de acciones y estados (pendiente).</div>
+        <!-- SEGUIMIENTO: solo Analista o Administrador -->
+        @if (User.IsInRole("Analista") || User.IsInRole("Administrador"))
+        {
+            <div class="col-sm-6 col-lg-3">
+                <div class="p-3 quick-card h-100 bg-white">
+                    <div class="fw-semibold mb-1">Reportes</div>
+                    <div class="text-muted small">Indicadores y métricas de gestión.</div>
+                </div>
             </div>
-        </div>
-
-        <!-- REPORTES -->
-        <div class="col-sm-6 col-lg-3">
-            <div class="p-3 quick-card h-100 bg-white opacity-75">
-                <div class="fw-semibold mb-1">Reportes</div>
-                <div class="text-muted small">Indicadores y exportaciones (pendiente).</div>
-            </div>
-        </div>
+        }
     </div>
 
     <!-- KPIs / Estado general -->

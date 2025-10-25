@@ -1,34 +1,38 @@
-﻿@model IEnumerable<ProyectoFinalBLL.DTOs.UsuarioDto>
+﻿@using Microsoft.EntityFrameworkCore
+@using ProyectoFinalDAL.Entidades
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Usuarios";
+    var usuarios = await UserManager.Users.ToListAsync();
 }
 
-<h2>Usuarios</h2>
-
-<a asp-action="Create" class="btn btn-success mb-2">Nuevo Usuario</a>
+<h2>Listado de Usuarios</h2>
 
 <table class="table table-striped">
     <thead>
         <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Rol</th>
+            <th>Nombre completo</th>
+            <th>Email</th>
+            <th>Roles</th>
             <th>Acciones</th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var u in Model)
+        @foreach (var user in usuarios)
         {
+            var roles = await UserManager.GetRolesAsync(user);
             <tr>
-                <td>@u.NombreCompleto</td>
-                <td>@u.Correo</td>
-                <td>@u.Rol</td>
+                <td>@user.NombreCompleto</td>
+                <td>@user.Email</td>
+                <td>@string.Join(", ", roles)</td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@u.IdUsuario" class="btn btn-primary btn-sm">Editar</a>
-                    <a asp-action="Delete" asp-route-id="@u.IdUsuario" class="btn btn-danger btn-sm">Eliminar</a>
+                    <a asp-controller="Usuario" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-primary">Editar</a>
+                    <a asp-controller="Usuario" asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-danger">Eliminar</a>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
