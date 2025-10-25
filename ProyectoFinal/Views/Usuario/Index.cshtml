@@ -1,0 +1,34 @@
+﻿@model IEnumerable<ProyectoFinalBLL.DTOs.UsuarioDto>
+
+@{
+    ViewData["Title"] = "Usuarios";
+}
+
+<h2>Usuarios</h2>
+
+<a asp-action="Create" class="btn btn-success mb-2">Nuevo Usuario</a>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.NombreCompleto</td>
+                <td>@u.Correo</td>
+                <td>@u.Rol</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@u.IdUsuario" class="btn btn-primary btn-sm">Editar</a>
+                    <a asp-action="Delete" asp-route-id="@u.IdUsuario" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

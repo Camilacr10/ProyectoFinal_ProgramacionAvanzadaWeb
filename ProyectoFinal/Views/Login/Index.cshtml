@@ -1,0 +1,62 @@
+﻿@model ProyectoFinalBLL.DTOs.LoginDto
+
+@{
+    ViewData["Title"] = "Iniciar Sesión";
+}
+
+<style>
+    .login-container {
+        max-width: 400px;
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid rgba(0,0,0,.1);
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+        background-color: #fff;
+    }
+
+        .login-container h2 {
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #0d6efd;
+        }
+
+        .login-container .btn-primary {
+            width: 100%;
+        }
+
+    .text-error {
+        color: red;
+        font-size: 0.875rem;
+    }
+</style>
+
+<div class="login-container">
+    <h2>Iniciar Sesión</h2>
+
+    <form asp-action="Index" method="post">
+        <div asp-validation-summary="All" class="text-error mb-2"></div>
+
+        <div class="mb-3">
+            <label asp-for="Correo" class="form-label">Correo</label>
+            <input asp-for="Correo" class="form-control" />
+            <span asp-validation-for="Correo" class="text-error"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Clave" class="form-label">Contraseña</label>
+            <input asp-for="Clave" type="password" class="form-control" />
+            <span asp-validation-for="Clave" class="text-error"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Ingresar</button>
+    </form>
+
+    <div class="mt-3 text-center text-muted">
+        Usuario predeterminado: <strong>admin@sgc.com</strong> / <strong>admin</strong>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
