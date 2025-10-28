@@ -15,5 +15,10 @@ namespace ProyectoFinalBLL.Interfaces
         Task UpdateAsync(SolicitudDto dto);
         Task DeleteAsync(int id);
         Task<bool> SolicitudConflictiva(int idCliente);
+
+        //Lo necesito para el tracking
+        Task<CustomResponse<List<SolicitudDto>>> ObtenerTodosAsync();
+        Task<CustomResponse<SolicitudDto>> ObtenerPorIdAsync(int id);
+        Task<CustomResponse<SolicitudDto>> ActualizarAsync(SolicitudDto dto);
     }
 }

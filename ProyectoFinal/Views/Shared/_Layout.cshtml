@@ -26,6 +26,16 @@
 
                     @if (User.IsInRole("Administrador"))
                     {
+
+                        @if (User.IsInRole("Analista") || User.IsInRole("Admin"))
+                        {
+                            <li><a class="dropdown-item" asp-controller="FlujoSolicitudes" asp-action="Analisis">Análisis</a></li>
+                        }
+                        @if (User.IsInRole("Gestor") || User.IsInRole("Admin"))
+                        {
+                            <li><a class="dropdown-item" asp-controller="FlujoSolicitudes" asp-action="Aprobaciones">Aprobaciones</a></li>
+                        }
+                        <li><a class="dropdown-item" asp-controller="FlujoSolicitudes" asp-action="Reporte">Reporte</a></li>
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Usuario" asp-action="Index">Usuarios</a>
                         </li>

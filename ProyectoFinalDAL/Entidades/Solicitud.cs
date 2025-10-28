@@ -18,5 +18,10 @@ namespace ProyectoFinalDAL.Entidades
 
         public Cliente? Cliente { get; set; }
 
+        public string? Comentarios { get; set; } = "Se Crea la solicitud";
+
+        // Navegación
+        public List<SolicitudTracking> Trackings { get; set; } = new();
+
     }
 }

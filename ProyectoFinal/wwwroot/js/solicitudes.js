@@ -52,6 +52,24 @@
 
                         // Limpiar formulario
                         form[0].reset();
+
+                        // ====== Ir al tracking ======
+                        const id = response.idSolicitud || response.IdSolicitud || response.data?.idSolicitud;
+                        if (id) {
+                            Swal.fire({
+                                title: 'Solicitud creada',
+                                html: mensaje + '<br><br>¿Deseas ver el tracking?',
+                                icon: 'success',
+                                showCancelButton: true,
+                                confirmButtonText: 'Ver tracking',
+                                cancelButtonText: 'Cerrar'
+                            }).then(r => {
+                                if (r.isConfirmed) {
+                                    window.location.href = `/FlujoSolicitudes/Tracking?id=${encodeURIComponent(id)}`;
+                                }
+                            });
+                        }
+
                     } else {
                         Swal.fire({
                             title: 'Error',

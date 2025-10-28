@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Reporte de Tracking";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>@ViewData["Title"]</h3>
+</div>
+
+<div class="mb-3">
+    <label for="gestionId" class="form-label">ID de Solicitud</label>
+    <input id="gestionId" class="form-control" placeholder="Ingrese el ID de la solicitud" />
+</div>
+
+<div class="mb-3">
+    <button id="btnConsultar" class="btn btn-primary">Consultar</button>
+</div>
+
+<table id="tablaTracking" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Solicitud</th>
+            <th>Acción</th>
+            <th>Comentario</th>
+            <th>Estado</th>
+            <th>Usuario</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+</table>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/common.js" asp-append-version="true"></script>
+    <script src="~/js/flujo-reporte.js" asp-append-version="true"></script>
+}

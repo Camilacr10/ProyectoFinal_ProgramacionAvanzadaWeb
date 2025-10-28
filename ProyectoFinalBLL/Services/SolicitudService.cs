@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
 using ProyectoFinalDAL.Entidades;
@@ -13,6 +14,7 @@ namespace ProyectoFinalBLL.Services
     public class SolicitudService : ISolicitudService
     {
         private readonly ISolicitudRepository _repo;
+        private readonly IMapper _mapper;
         public SolicitudService(ISolicitudRepository repo)
         {
             _repo = repo;
@@ -79,5 +81,67 @@ namespace ProyectoFinalBLL.Services
             FechaSolicitud = d.FechaSolicitud,
             DocumentoPath = d.DocumentoPath
         };
+
+        //Lo necesito para el tracking
+
+        public async Task<CustomResponse<List<SolicitudDto>>> ObtenerTodosAsync()
+        {
+            var r = new CustomResponse<List<SolicitudDto>>();
+            var list = await _repo.ObtenerTodosAsync();
+            r.Data = list.Select(_mapper.Map<SolicitudDto>).ToList();
+            return r;
+        }
+
+        public async Task<CustomResponse<SolicitudDto>> ObtenerPorIdAsync(int id)
+        {
+            var r = new CustomResponse<SolicitudDto>();
+            var s = await _repo.ObtenerPorIdAsync(id);
+            if (s == null)
+            {
+                r.EsError = true;
+                r.Mensaje = "Solicitud no encontrada";
+                return r;
+            }
+            r.Data = _mapper.Map<SolicitudDto>(s);
+            return r;
+        }
+
+        public async Task<CustomResponse<SolicitudDto>> ActualizarAsync(SolicitudDto dto)
+        {
+            var r = new CustomResponse<SolicitudDto>();
+
+            if (dto.Monto <= 0 || dto.Monto > 10_000_000m)
+            {
+                r.EsError = true;
+                r.Mensaje = "El monto debe ser mayor a 0 y no exceder 10.000.000";
+                return r;
+            }
+
+            var s = await _repo.ObtenerPorIdAsync(dto.IdSolicitud);
+            if (s == null)
+            {
+                r.EsError = true;
+                r.Mensaje = "Solicitud no existe";
+                return r;
+            }
+
+            s.IdCliente = dto.IdCliente;
+            s.Monto = dto.Monto;
+            s.Estado = dto.Estado;
+            s.Comentarios = dto.Comentarios;
+            s.DocumentoPath = dto.DocumentoPath;
+
+            if (!await _repo.ActualizarAsync(s))
+            {
+                r.EsError = true;
+                r.Mensaje = "No se pudo actualizar la solicitud";
+                return r;
+            }
+
+            r.Data = _mapper.Map<SolicitudDto>(s);
+            return r;
+        }
+
+
     }
 }

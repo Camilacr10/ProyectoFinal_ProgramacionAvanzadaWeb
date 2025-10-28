@@ -17,5 +17,12 @@ namespace ProyectoFinalDAL.Repositories
         Task<int> SaveChangesAsync();
         Task<bool> SolicitudConflictiva(int idCliente);
 
+        //Lo necesito para el tracking
+        Task<List<Solicitud>> ObtenerTodosAsync();
+
+        Task<Solicitud?> ObtenerPorIdAsync(int id);
+
+        Task<bool> ActualizarAsync(Solicitud entidad);
+
     }
 }

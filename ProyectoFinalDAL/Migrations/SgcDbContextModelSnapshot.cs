@@ -267,6 +267,12 @@ namespace ProyectoFinalDAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdSolicitud"));
 
+                    b.Property<int?>("ClienteIdCliente")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comentarios")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("DocumentoPath")
                         .HasColumnType("nvarchar(max)");
 
@@ -286,9 +292,50 @@ namespace ProyectoFinalDAL.Migrations
 
                     b.HasKey("IdSolicitud");
 
+                    b.HasIndex("ClienteIdCliente");
+
                     b.HasIndex("IdCliente");
 
                     b.ToTable("Solicitudes");
+                });
+
+            modelBuilder.Entity("ProyectoFinalDAL.Entidades.SolicitudTracking", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Comentario")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdSolicitud")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdSolicitud");
+
+                    b.ToTable("SolicitudTrackings");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -344,6 +391,10 @@ namespace ProyectoFinalDAL.Migrations
 
             modelBuilder.Entity("ProyectoFinalDAL.Entidades.Solicitud", b =>
                 {
+                    b.HasOne("ProyectoFinalDAL.Entidades.Cliente", null)
+                        .WithMany("Solicitudes")
+                        .HasForeignKey("ClienteIdCliente");
+
                     b.HasOne("ProyectoFinalDAL.Entidades.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente")
@@ -351,6 +402,27 @@ namespace ProyectoFinalDAL.Migrations
                         .IsRequired();
 
                     b.Navigation("Cliente");
+                });
+
+            modelBuilder.Entity("ProyectoFinalDAL.Entidades.SolicitudTracking", b =>
+                {
+                    b.HasOne("ProyectoFinalDAL.Entidades.Solicitud", "Solicitud")
+                        .WithMany("Trackings")
+                        .HasForeignKey("IdSolicitud")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Solicitud");
+                });
+
+            modelBuilder.Entity("ProyectoFinalDAL.Entidades.Cliente", b =>
+                {
+                    b.Navigation("Solicitudes");
+                });
+
+            modelBuilder.Entity("ProyectoFinalDAL.Entidades.Solicitud", b =>
+                {
+                    b.Navigation("Trackings");
                 });
 #pragma warning restore 612, 618
         }

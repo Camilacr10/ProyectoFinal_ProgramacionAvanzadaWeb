@@ -6,63 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ProyectoFinalDAL.Migrations
 {
     /// <inheritdoc />
-    public partial class ActualizacionModelo : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Usuario");
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Estado",
-                table: "Solicitudes",
-                type: "nvarchar(max)",
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(50)",
-                oldMaxLength: 50);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "DocumentoPath",
-                table: "Solicitudes",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(255)",
-                oldMaxLength: 255,
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Telefono",
-                table: "Clientes",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(20)",
-                oldMaxLength: 20,
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Email",
-                table: "Clientes",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(100)",
-                oldMaxLength: 100,
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Direccion",
-                table: "Clientes",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(255)",
-                oldMaxLength: 255,
-                oldNullable: true);
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -101,6 +49,23 @@ namespace ProyectoFinalDAL.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Clientes",
+                columns: table => new
+                {
+                    IdCliente = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Identificacion = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Clientes", x => x.IdCliente);
                 });
 
             migrationBuilder.CreateTable(
@@ -209,6 +174,60 @@ namespace ProyectoFinalDAL.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Solicitudes",
+                columns: table => new
+                {
+                    IdSolicitud = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IdCliente = table.Column<int>(type: "int", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    FechaSolicitud = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DocumentoPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Comentarios = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ClienteIdCliente = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Solicitudes", x => x.IdSolicitud);
+                    table.ForeignKey(
+                        name: "FK_Solicitudes_Clientes_ClienteIdCliente",
+                        column: x => x.ClienteIdCliente,
+                        principalTable: "Clientes",
+                        principalColumn: "IdCliente");
+                    table.ForeignKey(
+                        name: "FK_Solicitudes_Clientes_IdCliente",
+                        column: x => x.IdCliente,
+                        principalTable: "Clientes",
+                        principalColumn: "IdCliente",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SolicitudTrackings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    IdSolicitud = table.Column<int>(type: "int", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: false),
+                    Accion = table.Column<string>(type: "nvarchar(80)", maxLength: 80, nullable: false),
+                    Comentario = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UsuarioId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SolicitudTrackings", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SolicitudTrackings_Solicitudes_IdSolicitud",
+                        column: x => x.IdSolicitud,
+                        principalTable: "Solicitudes",
+                        principalColumn: "IdSolicitud",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
@@ -247,6 +266,27 @@ namespace ProyectoFinalDAL.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Identificacion",
+                table: "Clientes",
+                column: "Identificacion",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Solicitudes_ClienteIdCliente",
+                table: "Solicitudes",
+                column: "ClienteIdCliente");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Solicitudes_IdCliente",
+                table: "Solicitudes",
+                column: "IdCliente");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SolicitudTrackings_IdSolicitud",
+                table: "SolicitudTrackings",
+                column: "IdSolicitud");
         }
 
         /// <inheritdoc />
@@ -268,75 +308,19 @@ namespace ProyectoFinalDAL.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "SolicitudTrackings");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "Estado",
-                table: "Solicitudes",
-                type: "nvarchar(50)",
-                maxLength: 50,
-                nullable: false,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)");
+            migrationBuilder.DropTable(
+                name: "Solicitudes");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "DocumentoPath",
-                table: "Solicitudes",
-                type: "nvarchar(255)",
-                maxLength: 255,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Telefono",
-                table: "Clientes",
-                type: "nvarchar(20)",
-                maxLength: 20,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Email",
-                table: "Clientes",
-                type: "nvarchar(100)",
-                maxLength: 100,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<string>(
-                name: "Direccion",
-                table: "Clientes",
-                type: "nvarchar(255)",
-                maxLength: 255,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
-
-            migrationBuilder.CreateTable(
-                name: "Usuario",
-                columns: table => new
-                {
-                    IdUsuario = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Clave = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Correo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    NombreCompleto = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
-                    Rol = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Usuario", x => x.IdUsuario);
-                });
+            migrationBuilder.DropTable(
+                name: "Clientes");
         }
     }
 }

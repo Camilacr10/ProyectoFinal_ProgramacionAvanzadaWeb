@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinalBLL.Interfaces;
+using ProyectoFinalBLL.Mapeos;
 using ProyectoFinalBLL.Services;
 using ProyectoFinalDAL.Data;
 using ProyectoFinalDAL.Data.Seed;
@@ -35,6 +36,11 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Login/AccessDenied";
 });
 
+
+// AutoMapper
+builder.Services.AddAutoMapper(cfg => { cfg.AddProfile<MapeoClases>(); });
+
+
 // ======================================================
 // 🔹 REGISTRAR SERVICIOS BLL y REPOSITORIOS DAL
 // ======================================================
@@ -45,6 +51,11 @@ builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
 // Solicitud
 builder.Services.AddScoped<ISolicitudService, SolicitudService>();
 builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
+
+// Tracking
+builder.Services.AddScoped<ITrackingServicio, TrackingServicio>();
+builder.Services.AddScoped<ITrackingRepositorio, TrackingRepositorio>();
+
 
 // ======================================================
 // 🔹 MVC
@@ -95,5 +106,9 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}"
 );
+
+app.MapControllerRoute(
+    name: "Solicitudes",
+    pattern: "{controller=Solicitudes}/{action=Index}/{id?}");
 
 app.Run();

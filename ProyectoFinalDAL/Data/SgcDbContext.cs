@@ -15,6 +15,7 @@ namespace ProyectoFinalDAL.Data
         // Entidades personalizadas
         public DbSet<Cliente> Clientes { get; set; }
         public DbSet<Solicitud> Solicitudes { get; set; }
+        public DbSet<SolicitudTracking> SolicitudTrackings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -49,6 +50,21 @@ namespace ProyectoFinalDAL.Data
                       .WithMany()
                       .HasForeignKey(s => s.IdCliente)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+            // Tracking
+            modelBuilder.Entity<SolicitudTracking>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+                entity.Property(t => t.Estado).HasMaxLength(40);
+                entity.Property(t => t.Accion).HasMaxLength(80);
+                entity.Property(t => t.UsuarioId).HasMaxLength(450);
+
+                entity.HasOne(t => t.Solicitud)
+                 .WithMany(t => t.Trackings)
+                 .HasForeignKey(t => t.IdSolicitud)
+                 .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }
