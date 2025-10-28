@@ -10,10 +10,6 @@
 		<PackageReference Include="bootstrap" Version="5.3.8" />
 		<PackageReference Include="jQuery" Version="3.7.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
-<<<<<<< HEAD
-=======
-		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.15" />
->>>>>>> 88ffca29ee1bbc7bbe0eeb32ef721b08ad82152e
 		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.ViewFeatures" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Razor.Runtime" Version="2.3.0" />
