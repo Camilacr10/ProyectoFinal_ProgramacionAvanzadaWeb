@@ -12,8 +12,8 @@ using ProyectoFinalDAL.Data;
 namespace ProyectoFinalDAL.Migrations
 {
     [DbContext(typeof(SgcDbContext))]
-    [Migration("20251027231340_SinCambios")]
-    partial class SinCambios
+    [Migration("20251028035459_InicialIdentity")]
+    partial class InicialIdentity
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -275,7 +275,8 @@ namespace ProyectoFinalDAL.Migrations
 
                     b.Property<string>("Estado")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime2");
@@ -349,7 +350,7 @@ namespace ProyectoFinalDAL.Migrations
                     b.HasOne("ProyectoFinalDAL.Entidades.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Cliente");
