@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ProyectoFinalDAL.Migrations
 {
     [DbContext(typeof(SgcDbContext))]
-    partial class SgcDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251028030343_CambioBase")]
+    partial class CambioBase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -345,7 +348,7 @@ namespace ProyectoFinalDAL.Migrations
                     b.HasOne("ProyectoFinalDAL.Entidades.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Cliente");
