@@ -13,13 +13,21 @@ namespace ProyectoFinalDAL.Data.Seed
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
+            // 🔹 Roles que queremos en el sistema
             string[] roles = { "Administrador", "Analista", "Gestor", "ServicioAlCliente" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
-                    await roleManager.CreateAsync(new IdentityRole(role));
+                {
+                    var roleResult = await roleManager.CreateAsync(new IdentityRole(role));
+                    if (!roleResult.Succeeded)
+                    {
+                        Console.WriteLine($"❌ Error al crear rol '{role}': {string.Join(", ", roleResult.Errors)}");
+                    }
+                }
             }
 
+            // 🔹 Usuario administrador inicial
             string adminEmail = "admin@sgc.com";
             string adminPassword = "Admin123!";
 
@@ -33,12 +41,23 @@ namespace ProyectoFinalDAL.Data.Seed
                     EmailConfirmed = true
                 };
 
-                var result = await userManager.CreateAsync(adminUser, adminPassword);
-                if (result.Succeeded)
+                var createResult = await userManager.CreateAsync(adminUser, adminPassword);
+                if (createResult.Succeeded)
                 {
-                    await userManager.AddToRoleAsync(adminUser, "Administrador");
+                    var roleResult = await userManager.AddToRoleAsync(adminUser, "Administrador");
+                    if (!roleResult.Succeeded)
+                    {
+                        Console.WriteLine($"❌ Error al asignar rol de administrador: {string.Join(", ", roleResult.Errors)}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"❌ Error al crear usuario admin: {string.Join(", ", createResult.Errors)}");
                 }
             }
+
+            // 🔹 Opcional: imprimir confirmación
+            Console.WriteLine("✅ Seed de roles y usuario administrador completado.");
         }
     }
 }

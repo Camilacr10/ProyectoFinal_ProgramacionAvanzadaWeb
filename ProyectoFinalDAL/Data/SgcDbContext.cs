@@ -1,36 +1,55 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinalDAL.Entidades;
 
-public class SgcDbContext : IdentityDbContext<ApplicationUser>
+namespace ProyectoFinalDAL.Data
 {
-    public SgcDbContext(DbContextOptions<SgcDbContext> options) : base(options) { }
-
-    public DbSet<Cliente> Clientes => Set<Cliente>();
-    public DbSet<Solicitud> Solicitudes => Set<Solicitud>();
-
-    protected override void OnModelCreating(ModelBuilder builder)
+    // Hereda de IdentityDbContext para incluir las tablas de Identity
+    public class SgcDbContext : IdentityDbContext<ApplicationUser>
     {
-        base.OnModelCreating(builder);
-
-        // Configuración Cliente
-        builder.Entity<Cliente>(e =>
+        public SgcDbContext(DbContextOptions<SgcDbContext> options)
+            : base(options)
         {
-            e.HasKey(c => c.IdCliente);
-            e.HasIndex(c => c.Identificacion).IsUnique();
-            e.Property(c => c.Nombre).HasMaxLength(150).IsRequired();
-            e.Property(c => c.Identificacion).HasMaxLength(50).IsRequired();
-        });
+        }
 
-        // Configuración Solicitud
-        builder.Entity<Solicitud>(e =>
+        // Entidades personalizadas
+        public DbSet<Cliente> Clientes { get; set; }
+        public DbSet<Solicitud> Solicitudes { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            e.HasKey(s => s.IdSolicitud);
-            e.HasOne(s => s.Cliente)
-              .WithMany()
-              .HasForeignKey(s => s.IdCliente)
-              .OnDelete(DeleteBehavior.Restrict);
-        });
+            base.OnModelCreating(modelBuilder); // ⚠ NECESARIO para Identity
+
+            // Configuración Cliente
+            modelBuilder.Entity<Cliente>(entity =>
+            {
+                entity.HasKey(c => c.IdCliente);
+                entity.Property(c => c.Nombre)
+                      .IsRequired()
+                      .HasMaxLength(150);
+                entity.Property(c => c.Identificacion)
+                      .IsRequired()
+                      .HasMaxLength(50);
+                entity.HasIndex(c => c.Identificacion).IsUnique();
+            });
+
+            // Configuración Solicitud
+            modelBuilder.Entity<Solicitud>(entity =>
+            {
+                entity.HasKey(s => s.IdSolicitud);
+
+                entity.Property(s => s.Estado)
+                      .IsRequired()
+                      .HasMaxLength(50);
+
+                entity.Property(s => s.Monto)                     // 🔹 Agregado
+                      .HasColumnType("decimal(18,2)");            // Configura precisión y escala
+
+                entity.HasOne(s => s.Cliente)
+                      .WithMany()
+                      .HasForeignKey(s => s.IdCliente)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+        }
     }
 }

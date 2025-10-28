@@ -1,49 +1,96 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ProyectoFinalBLL.Interfaces;
+using ProyectoFinalBLL.Services;
 using ProyectoFinalDAL.Data;
-using ProyectoFinalDAL.Entidades;
 using ProyectoFinalDAL.Data.Seed;
+using ProyectoFinalDAL.Entidades;
+using ProyectoFinalDAL.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔹 DbContext con SQL Server
+// ======================================================
+// 🔹 CONFIGURAR DbContext con SQL Server y resiliencia
+// ======================================================
 builder.Services.AddDbContext<SgcDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.EnableRetryOnFailure()
+    )
 );
 
-// 🔹 Identity con ApplicationUser
+// ======================================================
+// 🔹 CONFIGURAR IDENTITY
+// ======================================================
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<SgcDbContext>()
     .AddDefaultTokenProviders();
 
-// 🔹 Cookies
+// ======================================================
+// 🔹 CONFIGURAR COOKIES DE AUTENTICACIÓN
+// ======================================================
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Login/Index";
     options.AccessDeniedPath = "/Login/AccessDenied";
 });
 
+// ======================================================
+// 🔹 REGISTRAR SERVICIOS BLL y REPOSITORIOS DAL
+// ======================================================
+// Cliente
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+
+// Solicitud
+builder.Services.AddScoped<ISolicitudService, SolicitudService>();
+builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
+
+// ======================================================
 // 🔹 MVC
+// ======================================================
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// 🔹 Ejecutar Seeder
+// ======================================================
+// 🔹 APLICAR MIGRACIONES Y EJECUTAR SEED DATA
+// ======================================================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    await SeedData.InitializeAsync(services);
+    try
+    {
+        var db = services.GetRequiredService<SgcDbContext>();
+        db.Database.Migrate();
+        await SeedData.InitializeAsync(services);
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"❌ Error al aplicar migraciones o seed: {ex.Message}");
+    }
 }
 
-// 🔹 Pipeline
+// ======================================================
+// 🔹 PIPELINE HTTP
+// ======================================================
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-// 🔹 Ruta por defecto al login
+// ======================================================
+// 🔹 RUTA POR DEFECTO
+// ======================================================
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Login}/{action=Index}/{id?}"

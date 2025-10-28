@@ -1,43 +1,62 @@
-﻿<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" asp-controller="Home" asp-action="Index">SGC</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
-                <!-- Clientes: todos los usuarios logueados -->
-                <li class="nav-item">
-                    <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
-                </li>
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SGC</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" asp-controller="Home" asp-action="Index">SGC</a>
+            <div class="collapse navbar-collapse">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
+                    </li>
 
-                <!-- Solicitudes: solo ServicioAlCliente o Administrador -->
-                @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Administrador"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Solicitudes" asp-action="Index">Solicitudes</a>
-                    </li>
-                }
+                    @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Administrador"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Solicitudes" asp-action="Index">Solicitudes</a>
+                        </li>
+                    }
 
-                <!-- Usuarios: solo Administrador -->
-                @if (User.IsInRole("Administrador"))
-                {
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Usuario" asp-action="Index">Usuarios</a>
-                    </li>
-                }
-            </ul>
+                    @if (User.IsInRole("Administrador"))
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Usuario" asp-action="Index">Usuarios</a>
+                        </li>
+                    }
+                </ul>
 
-            <ul class="navbar-nav">
-                @if (User.Identity.IsAuthenticated)
-                {
-                    <li class="nav-item">
-                        <span class="nav-link">Hola, @User.Identity.Name</span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" asp-controller="Login" asp-action="Logout">
-                            <button type="submit" class="btn btn-link nav-link">Cerrar sesión</button>
-                        </form>
-                    </li>
-                }
-            </ul>
+                <ul class="navbar-nav">
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <span class="nav-link">Hola, @User.Identity.Name</span>
+                        </li>
+                        <li class="nav-item">
+                            <form method="post" asp-controller="Login" asp-action="Logout">
+                                <button type="submit" class="btn btn-link nav-link">Cerrar sesión</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            </div>
         </div>
+    </nav>
+
+    <div class="container">
+        @RenderBody()
     </div>
-</nav>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

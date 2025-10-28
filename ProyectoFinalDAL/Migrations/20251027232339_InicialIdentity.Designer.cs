@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ProyectoFinalDAL.Data;
 
@@ -11,9 +12,11 @@ using ProyectoFinalDAL.Data;
 namespace ProyectoFinalDAL.Migrations
 {
     [DbContext(typeof(SgcDbContext))]
-    partial class SgcDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251027232339_InicialIdentity")]
+    partial class InicialIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,8 +275,7 @@ namespace ProyectoFinalDAL.Migrations
 
                     b.Property<string>("Estado")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("FechaSolicitud")
                         .HasColumnType("datetime2");
@@ -347,7 +349,7 @@ namespace ProyectoFinalDAL.Migrations
                     b.HasOne("ProyectoFinalDAL.Entidades.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("IdCliente")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Cliente");
