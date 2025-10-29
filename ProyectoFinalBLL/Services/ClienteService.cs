@@ -43,6 +43,7 @@ namespace ProyectoFinalBLL.Services
 
             current.Identificacion = dto.Identificacion;
             current.Nombre = dto.Nombre;
+            current.Apellido = dto.Apellido;
             current.Telefono = dto.Telefono;
             current.Email = dto.Email;
             current.Direccion = dto.Direccion;
@@ -62,6 +63,7 @@ namespace ProyectoFinalBLL.Services
             IdCliente = e.IdCliente,
             Identificacion = e.Identificacion,
             Nombre = e.Nombre,
+            Apellido = e.Apellido,
             Telefono = e.Telefono,
             Email = e.Email,
             Direccion = e.Direccion
@@ -72,6 +74,7 @@ namespace ProyectoFinalBLL.Services
             IdCliente = d.IdCliente,
             Identificacion = d.Identificacion,
             Nombre = d.Nombre,
+            Apellido = d.Apellido,
             Telefono = d.Telefono,
             Email = d.Email,
             Direccion = d.Direccion

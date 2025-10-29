@@ -12,6 +12,9 @@ namespace ProyectoFinalBLL.DTOs
         [Required, StringLength(150)]
         public string Nombre { get; set; } = "";
 
+        [Required, StringLength(150)]
+        public string Apellido { get; set; } = "";
+
         [StringLength(20)]
         public string? Telefono { get; set; }
 
