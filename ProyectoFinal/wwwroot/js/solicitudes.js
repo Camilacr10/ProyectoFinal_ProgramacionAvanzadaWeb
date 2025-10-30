@@ -127,33 +127,52 @@
         // ====== DELETE ======
         bindDelete() {
             const table = document.getElementById('tablaSolicitudes');
-            if (!table) return; // no estamos en Index
+            if (!table) return;
 
             document.addEventListener('click', (ev) => {
                 const btn = ev.target.closest('.btn-delete');
                 if (!btn) return;
 
                 const id = btn.getAttribute('data-id');
-                const name = btn.getAttribute('data-name') || 'esta solicitud';
+                const nombre = btn.getAttribute('data-name') || '-';
+                const cedula = btn.getAttribute('data-cedula') || '-';
+                const monto = Number(btn.getAttribute('data-monto') || 0);
+
                 const form = document.querySelector('.delete-form-' + id);
                 if (!form) return;
+
+                const html = `
+      <div class="text-start" style="line-height:1.6">
+        <div>Se eliminará la <strong>solicitud #${id}</strong>.</div>
+        <div>Cliente: <strong>${nombre}</strong> <span class="text-muted">(${cedula})</span></div>
+        <div>Monto: <strong>₡${monto.toLocaleString('es-CR')}</strong></div>
+      </div>
+    `;
 
                 const doSubmit = () => form.submit();
 
                 if (window.Swal) {
                     Swal.fire({
-                        title: '¿Eliminar?',
-                        html: `Se eliminará la solicitud <strong>#${id}</strong> de <strong>${name}</strong>.`,
                         icon: 'warning',
+                        title: '¿Eliminar solicitud de crédito?',
+                        html,
                         showCancelButton: true,
                         confirmButtonText: 'Sí, eliminar',
-                        cancelButtonText: 'Cancelar'
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        focusCancel: true,
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                            cancelButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false
                     }).then(res => { if (res.isConfirmed) doSubmit(); });
                 } else {
-                    if (confirm(`¿Eliminar la solicitud #${id} de ${name}?`)) doSubmit();
+                    if (confirm(`¿Eliminar la solicitud #${id} de ${nombre}?`)) doSubmit();
                 }
             }, false);
         }
+
     };
 
     document.addEventListener('DOMContentLoaded', () => Solicitudes.init());

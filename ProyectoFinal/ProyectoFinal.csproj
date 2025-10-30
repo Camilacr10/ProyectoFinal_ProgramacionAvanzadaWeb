@@ -26,4 +26,8 @@
 		<ProjectReference Include="..\ProyectoFinalDAL\ProyectoFinalDAL.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="wwwroot\uploads\solicitudes\" />
+	</ItemGroup>
+
 </Project>
