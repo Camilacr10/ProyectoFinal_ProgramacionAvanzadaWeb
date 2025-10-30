@@ -16,6 +16,8 @@ namespace ProyectoFinalBLL.Mapeos
         {
             // Tracking <-> TrackingDto
             CreateMap<SolicitudTracking, TrackingDto>().ReverseMap();
+
+            CreateMap<Cliente, ClienteDto>().ReverseMap();
         }
     }
 }

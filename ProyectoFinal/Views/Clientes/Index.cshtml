@@ -27,7 +27,7 @@
     <h2 class="m-0">Clientes</h2>
     <div class="d-flex gap-2">
         <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
-        <a asp-action="Create" class="btn btn-primary">Nuevo</a>
+        <a href="javascript:void(0)" class="btn btn-primary btn-new">Nuevo</a>
     </div>
 </div>
 
@@ -63,25 +63,15 @@ else
                         <td>@c.Direccion</td>
                         <td>@c.Email</td>
                         <td class="text-end text-nowrap">
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-primary btn-edit"
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit"
                                     data-id="@c.IdCliente">
                                 Editar
                             </button>
 
-                            <button type="button"
-                                    class="btn btn-sm btn-outline-danger btn-delete"
-                                    data-id="@c.IdCliente" data-name="@c.Nombre">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="@c.IdCliente">
                                 Eliminar
                             </button>
-
-                            <!-- Form oculto para DELETE (POST) -->
-                            <form asp-action="Delete"
-                                  asp-route-id="@c.IdCliente"
-                                  method="post"
-                                  class="d-inline delete-form-@c.IdCliente">
-                                @Html.AntiForgeryToken()
-                            </form>
                         </td>
                     </tr>
                 }
@@ -90,17 +80,21 @@ else
     </div>
 }
 
-
-<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true"
+<!-- Modal reutilizable para Create / Edit / Delete -->
+<div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true"
+     data-create-get="@Url.Action("CreateModal", "Clientes")"
+     data-create-post="@Url.Action("CreateModal", "Clientes")"
      data-edit-get="@Url.Action("EditModal", "Clientes")"
-     data-edit-post="@Url.Action("EditModal", "Clientes")">
+     data-edit-post="@Url.Action("EditModal", "Clientes")"
+     data-delete-get="@Url.Action("DeleteModal", "Clientes")"
+     data-delete-post="@Url.Action("DeleteModalConfirmed", "Clientes")">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content rounded-4">
             <div class="modal-header">
-                <h5 class="modal-title">Editar cliente</h5>
+                <h5 class="modal-title" id="crudTitle">Gestión de cliente</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body" id="editModalBody">
+            <div class="modal-body" id="crudBody">
                 <div class="text-center text-muted py-5">Cargando…</div>
             </div>
         </div>
