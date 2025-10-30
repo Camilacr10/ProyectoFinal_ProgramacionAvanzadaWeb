@@ -63,8 +63,6 @@ else
                     var nombre = s.Cliente is null ? "-" : $"{s.Cliente.Nombre} {s.Cliente.Apellido}";
                     var doc = s.DocumentoPath;
                     var estado = s.Estado ?? "Registrado";
-                    var comentario = string.IsNullOrWhiteSpace(s.Comentarios) ? "-" : s.Comentarios;
-
                     <tr>
                         <td>@s.IdSolicitud</td>
                         <td>@cedula</td>

@@ -70,6 +70,7 @@ namespace ProyectoFinalBLL.Services
             Estado = e.Estado,
             FechaSolicitud = e.FechaSolicitud,
             DocumentoPath = e.DocumentoPath,
+            Comentarios = e.Comentarios,
             Cliente = e.Cliente
         };
 
@@ -80,7 +81,8 @@ namespace ProyectoFinalBLL.Services
             Monto = d.Monto,
             Estado = d.Estado,
             FechaSolicitud = d.FechaSolicitud,
-            DocumentoPath = d.DocumentoPath
+            DocumentoPath = d.DocumentoPath,
+            Comentarios = d.Comentarios
         };
 
     }
