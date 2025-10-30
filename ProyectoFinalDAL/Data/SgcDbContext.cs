@@ -19,7 +19,7 @@ namespace ProyectoFinalDAL.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // ⚠ NECESARIO para Identity
+            base.OnModelCreating(modelBuilder); //  NECESARIO para Identity
 
             // Configuración Cliente
             modelBuilder.Entity<Cliente>(entity =>
@@ -43,7 +43,7 @@ namespace ProyectoFinalDAL.Data
                       .IsRequired()
                       .HasMaxLength(50);
 
-                entity.Property(s => s.Monto)                     // 🔹 Agregado
+                entity.Property(s => s.Monto)                     // Agregado
                       .HasColumnType("decimal(18,2)");            // Configura precisión y escala
 
                 entity.HasOne(s => s.Cliente)

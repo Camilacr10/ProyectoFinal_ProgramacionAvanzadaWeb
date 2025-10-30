@@ -21,6 +21,8 @@ namespace ProyectoFinalBLL.DTOs
         [StringLength(255)]
         public string? DocumentoPath { get; set; }
         public Cliente? Cliente { get; set; }
-        public string Comentarios { get; set; } = "Se Crea la solicitud";
+        public string Comentarios { get; set; }
+
+
     }
 }

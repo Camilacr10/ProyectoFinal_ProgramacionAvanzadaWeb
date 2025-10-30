@@ -1,6 +1,8 @@
 ﻿@model ProyectoFinalBLL.DTOs.SolicitudDto
+@using ProyectoFinalBLL.DTOs
 @{
     ViewData["Title"] = "Crear Solicitud de Crédito";
+    var clientes = ViewBag.Clientes as IEnumerable<ClienteDto> ?? Enumerable.Empty<ClienteDto>();
 }
 
 <h2>Crear Nueva Solicitud</h2>
@@ -8,16 +10,46 @@
 <form id="formCrearSolicitud" asp-action="Create" method="post" enctype="multipart/form-data">
     @Html.AntiForgeryToken()
 
-    <div class="mb-3">
-        <label asp-for="IdCliente" class="form-label"></label>
-        <input asp-for="IdCliente" id="IdCliente" class="form-control" />
-        <span asp-validation-for="IdCliente" class="text-danger"></span>
-    </div>
+    <input asp-for="IdCliente" id="IdCliente" type="hidden" />
+    <span asp-validation-for="IdCliente" class="text-danger"></span>
 
     <div class="mb-3">
+        <label for="CedulaSelect" class="form-label">Cédula</label>
+        <select id="CedulaSelect" class="form-select" required>
+            <option value="">-- Selecciona una cédula --</option>
+            @foreach (var c in clientes)
+            {
+                <option value="@c.Identificacion"
+                        data-idcliente="@c.IdCliente"
+                        data-nombre="@c.Nombre"
+                        data-apellido="@c.Apellido">
+                    @c.Identificacion
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Nombre</label>
+            <input id="NombreCliente" class="form-control" type="text" value="" readonly />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Apellido</label>
+            <input id="ApellidoCliente" class="form-control" type="text" value="" readonly />
+        </div>
+    </div>
+
+    <div class="mb-3 mt-3">
         <label asp-for="Monto" class="form-label"></label>
         <input asp-for="Monto" id="Monto" class="form-control" />
         <span asp-validation-for="Monto" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Comentarios" class="form-label"></label>
+        <input asp-for="Comentarios" class="form-control" />
+        <span asp-validation-for="Comentarios" class="text-danger"></span>
     </div>
 
     <div class="mb-3">
@@ -30,30 +62,8 @@
     <a asp-action="Index" class="btn btn-secondary">Regresar</a>
 </form>
 
-<!-- Modal de Confirmacion -->
-<div class="modal fade" id="modalSolicitudExitosa" tabindex="-1" aria-labelledby="modalSolicitudExitosaLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="modalSolicitudExitosaLabel">Solicitud creada</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-
-            <div class="modal-body">
-                <p id="mensajeSolicitudExitosa"></p>
-            </div>
-
-            <div class="modal-footer">
-                <a href="/Solicitudes/Index" class="btn btn-primary">Ir a Solicitudes</a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="~/js/solicitudes.js" asp-append-version="true"></script>
+
 }
