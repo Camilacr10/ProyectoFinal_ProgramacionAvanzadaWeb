@@ -1,12 +1,18 @@
 ﻿@{
     ViewData["Title"] = "Aprobaciones de Solicitudes";
-    bool puedeAcciones = User.IsInRole("Gestor") || User.IsInRole("Admin");
 }
 
+<!-- Título principal de la pantalla -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>@ViewData["Title"]</h3>
 </div>
 
+<!-- Token antiforgery (necesario para peticiones POST seguras desde JS) -->
+<form id="__af_token_holder" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Tabla principal de aprobaciones -->
 <table id="tablaAprob" class="table table-striped">
     <thead>
         <tr>
@@ -20,12 +26,16 @@
 </table>
 
 @section Scripts {
+    <!-- Validaciones de formularios -->
     <partial name="_ValidationScriptsPartial" />
-    @await Html.PartialAsync("_PermsScript")
-    <script>
-        window.AppPerms = window.AppPerms || {};
-        window.AppPerms.canAprobacionesAcciones = @puedeAcciones.ToString().ToLowerInvariant();
-    </script>
-    <script src="~/js/common.js" asp-append-version="true"></script>
+
+    <!-- Librería DataTables: muestra y pagina los registros -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- Librería SweetAlert2: alertas modernas y confirmaciones -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Script del módulo de aprobaciones -->
     <script src="~/js/flujo-aprobaciones.js" asp-append-version="true"></script>
 }

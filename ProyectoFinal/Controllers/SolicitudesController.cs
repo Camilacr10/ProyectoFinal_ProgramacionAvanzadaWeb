@@ -1,10 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.IO;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
-using System.IO;
 
 namespace ProyectoFinal.Controllers
 {
@@ -14,11 +15,16 @@ namespace ProyectoFinal.Controllers
         private readonly IClienteService _clientes;
         private readonly IWebHostEnvironment _env; // <- agregado para guardar archivos
 
-        public SolicitudesController(ISolicitudService service, IClienteService clientes, IWebHostEnvironment env)
+        // Servicio de tracking (registro de movimientos)
+        private readonly ITrackingServicio _trk;
+
+        // Constructor (inyecta dependencias)
+        public SolicitudesController(ISolicitudService service, IClienteService clientes, IWebHostEnvironment env, ITrackingServicio trk)
         {
             _service = service;
             _clientes = clientes;
             _env = env; // <- asignación
+            _trk = trk;
         }
 
         public async Task<IActionResult> Index()
@@ -57,7 +63,7 @@ namespace ProyectoFinal.Controllers
         public async Task<IActionResult> Create()
         {
             // Solo lectura de clientes para armar el dropdown de cédulas
-            ViewBag.Clientes = await _clientes.GetAllAsync(); 
+            ViewBag.Clientes = await _clientes.GetAllAsync();
             return View(new SolicitudDto());
         }
 
@@ -119,6 +125,27 @@ namespace ProyectoFinal.Controllers
                 }
 
                 var id = await _service.CreateAsync(dto);
+
+
+
+
+
+
+                // === Tracking de creación ===
+                try
+                {
+                    var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                 ?? (User?.Identity?.Name ?? "sistema");
+                    // Registra el evento "Crear" en el historial
+                    await _trk.GuardarAsync(id, dto.Estado ?? "Registrado", "Crear", dto.Comentarios, userId);
+                }
+                catch
+                { // Si el tracking falla, no interrumpe el flujo
+                }
+
+
+
+
 
                 if (isAjax)
                     return Json(new { success = true, idSolicitud = id });

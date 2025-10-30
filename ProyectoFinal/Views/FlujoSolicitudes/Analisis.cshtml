@@ -1,12 +1,18 @@
 ﻿@{
     ViewData["Title"] = "Análisis de Solicitudes";
-    bool puedeAcciones = User.IsInRole("Analista") || User.IsInRole("Admin");
 }
 
+<!-- Título principal de la página -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>@ViewData["Title"]</h3>
 </div>
 
+<!-- Token antiforgery (necesario para llamadas POST seguras desde JS) -->
+<form id="__af_token_holder" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Tabla principal del módulo de análisis -->
 <table id="tablaAnalisis" class="table table-striped">
     <thead>
         <tr>
@@ -20,12 +26,16 @@
 </table>
 
 @section Scripts {
+    <!-- Scripts de validación -->
     <partial name="_ValidationScriptsPartial" />
-    @await Html.PartialAsync("_PermsScript")
-    <script>
-        window.AppPerms = window.AppPerms || {};
-        window.AppPerms.canAnalisisAcciones = @puedeAcciones.ToString().ToLowerInvariant();
-    </script>
-    <script src="~/js/common.js" asp-append-version="true"></script>
+
+    <!-- Librería DataTables (para mostrar los datos con paginación y formato) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- Librería SweetAlert2 (para alertas y confirmaciones modernas) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Script JS del módulo (controla eventos, AJAX y recargas) -->
     <script src="~/js/flujo-analisis.js" asp-append-version="true"></script>
 }

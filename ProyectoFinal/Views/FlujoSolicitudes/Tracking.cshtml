@@ -3,18 +3,22 @@
     ViewData["Title"] = "Historial de Solicitud";
 }
 
+<!-- Encabezado con título y botón para volver -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>@ViewData["Title"]</h3>
     <a asp-action="Analisis" class="btn btn-secondary">Volver</a>
 </div>
 
+<!-- Campo con el ID de la solicitud (solo lectura) -->
 <div class="mb-3">
     <label class="form-label">ID de Solicitud</label>
     <input id="gestionId" class="form-control" value="@Model.IdSolicitud" readonly />
 </div>
 
+<!-- Botón para cargar el historial -->
 <button id="btnConsultar" class="btn btn-primary mb-3">Cargar Historial</button>
 
+<!-- Tabla que mostrará todo el seguimiento (tracking) -->
 <table id="tablaTracking" class="table table-striped">
     <thead>
         <tr>
@@ -29,9 +33,13 @@
 </table>
 
 @section Scripts {
-    <script src="~/js/common.js" asp-append-version="true"></script>
+    <!-- Librería DataTables (para paginar y mostrar los registros) -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- Script que gestiona el reporte del tracking -->
     <script src="~/js/flujo-reporte.js" asp-append-version="true"></script>
-    <script>
-        $(document).ready(() => $('#btnConsultar').click());
-    </script>
+
+    <!-- Ejecuta automáticamente la carga del historial al abrir -->
+    <script>$(document).ready(() => $('#btnConsultar').click());</script>
 }

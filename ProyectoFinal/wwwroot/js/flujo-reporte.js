@@ -1,23 +1,20 @@
 ﻿(() => {
     const Rep = {
+        // Tabla principal del reporte
         tabla: null,
-        usuariosMap: {},   // id -> etiqueta visible (userName/email)
+        // Mapa de usuarios para mostrar nombre en vez del ID
+        usuariosMap: {},
 
+        // Inicializa la pantalla
         init() {
-            // 1) Inicializa la tabla y eventos de inmediato (no bloquea)
             this.inicializarTabla();
             this.registrarEventos();
-
-            // 2) Cargar usuarios en background (si falla, no rompe nada)
-            this.cargarUsuarios()
-                .then(() => {
-                    // Si ya hay datos en la tabla, re-dibujamos para que
-                    // la columna Usuario muestre el label en vez del id.
-                    if (this.tabla) this.tabla.rows().invalidate().draw(false);
-                })
-                .catch(() => { /* ignorar, mostramos el id */ });
+            this.cargarUsuarios().then(() => {
+                if (this.tabla) this.tabla.rows().invalidate().draw(false);
+            }).catch(() => { });
         },
 
+        // Carga los usuarios para mostrar el nombre en el reporte
         async cargarUsuarios() {
             try {
                 const r = await $.get('/Usuarios/ObtenerUsuarios?_ts=' + Date.now());
@@ -37,7 +34,13 @@
             }
         },
 
+        // Crea la tabla del reporte
         inicializarTabla() {
+            if (!$.fn.DataTable) {
+                console.error('DataTables no está cargado');
+                return;
+            }
+
             this.tabla = $('#tablaTracking').DataTable({
                 data: [],
                 columns: [
@@ -46,33 +49,40 @@
                     { data: 'comentario', title: 'Comentario' },
                     { data: 'estado', title: 'Estado' },
                     {
-                        data: 'usuarioId', title: 'Usuario',
-                        // Si tenemos el mapa, mostramos userName/email; si no, dejamos el id
+                        data: 'usuarioId',
+                        title: 'Usuario',
                         render: (id) => this.usuariosMap[id] || id || ''
                     },
-                    { data: 'fecha', title: 'Fecha', render: v => v ? new Date(v).toLocaleString() : '' }
+                    {
+                        data: 'fecha',
+                        title: 'Fecha',
+                        render: v => v ? new Date(v).toLocaleString() : ''
+                    }
                 ],
-                responsive: true, pageLength: 10
+                responsive: true,
+                pageLength: 10
             });
         },
 
+        // Eventos del formulario de consulta
         registrarEventos() {
             $('#btnConsultar').on('click', () => this.cargar());
         },
 
+        // Carga los movimientos del tracking
         cargar() {
             const id = $('#gestionId').val();
             if (!id) return;
+
             $.get(`/FlujoSolicitudes/ObtenerTracking?id=${id}`, (r) => {
                 if (r.esError) {
                     return Swal.fire('Error', r.mensaje || 'No fue posible obtener el tracking', 'error');
                 }
                 this.tabla.clear().rows.add(r.data || []).draw();
-            }).fail(() => {
-                Swal.fire('Error', 'Error de comunicación', 'error');
-            });
+            }).fail(() => Swal.fire('Error', 'Error de comunicación', 'error'));
         }
     };
 
+    // Inicia el módulo al cargar la página
     $(document).ready(() => Rep.init());
 })();

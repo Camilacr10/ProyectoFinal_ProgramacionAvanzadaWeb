@@ -45,27 +45,5 @@ namespace ProyectoFinalDAL.Repositories
                 s.IdCliente == idCliente &&
                 (s.Estado == "Registrado" || s.Estado == "Devolucion"));
 
-        //Lo necesito para el tracking
-
-        public Task<List<Solicitud>> ObtenerTodosAsync()
-           => _ctx.Solicitudes
-                 .Include(s => s.Cliente)
-                 .AsNoTracking()
-                 .OrderByDescending(x => x.IdSolicitud)
-                 .ToListAsync();
-
-
-        public Task<Solicitud?> ObtenerPorIdAsync(int id)
-           => _ctx.Solicitudes
-                 .Include(s => s.Cliente)
-                 .AsNoTracking()
-                 .FirstOrDefaultAsync(s => s.IdSolicitud == id);
-
-        public async Task<bool> ActualizarAsync(Solicitud entidad)
-        {
-            _ctx.Solicitudes.Update(entidad);
-            await _ctx.SaveChangesAsync();
-            return true;
-        }
     }
 }

@@ -2,19 +2,23 @@
     ViewData["Title"] = "Reporte de Tracking";
 }
 
+<!-- Título principal de la pantalla -->
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h3>@ViewData["Title"]</h3>
 </div>
 
+<!-- Campo para digitar el ID de la solicitud a consultar -->
 <div class="mb-3">
     <label for="gestionId" class="form-label">ID de Solicitud</label>
     <input id="gestionId" class="form-control" placeholder="Ingrese el ID de la solicitud" />
 </div>
 
+<!-- Botón para consultar el historial -->
 <div class="mb-3">
     <button id="btnConsultar" class="btn btn-primary">Consultar</button>
 </div>
 
+<!-- Tabla donde se mostrará el tracking completo -->
 <table id="tablaTracking" class="table table-striped">
     <thead>
         <tr>
@@ -29,7 +33,13 @@
 </table>
 
 @section Scripts {
+    <!-- Validaciones generales -->
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/common.js" asp-append-version="true"></script>
+
+    <!-- Librería DataTables para mostrar los datos -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- Script principal del módulo de reporte -->
     <script src="~/js/flujo-reporte.js" asp-append-version="true"></script>
 }

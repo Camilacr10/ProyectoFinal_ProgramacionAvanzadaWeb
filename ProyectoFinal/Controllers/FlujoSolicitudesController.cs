@@ -6,90 +6,128 @@ using ProyectoFinalBLL.Interfaces;
 
 namespace ProyectoFinal.Controllers
 {
-        [Authorize]
-        public class FlujoSolicitudesController : Controller
+    [Authorize]
+    public class FlujoSolicitudesController : Controller
+    {
+        // Servicio de solicitudes
+        private readonly ISolicitudService _sol;
+        // Servicio de tracking (historial de movimientos)
+        private readonly ITrackingServicio _trk;
+
+        public FlujoSolicitudesController(ISolicitudService sol, ITrackingServicio trk)
         {
-            private readonly ISolicitudService _sol;
-            private readonly ITrackingServicio _trk;
+            _sol = sol;
+            _trk = trk;
+        }
 
-            public FlujoSolicitudesController(ISolicitudService sol, ITrackingServicio trk)
-            { _sol = sol; _trk = trk; }
+        // Pantalla para análisis de solicitudes (rol Analista/Admin)
+        public IActionResult Analisis() => View();
 
-            public IActionResult Analisis() => View();
-            public IActionResult Aprobaciones() => View();
-            public IActionResult Reporte() => View();
+        // Pantalla para aprobaciones de solicitudes (rol Gestor/Admin)
+        public IActionResult Aprobaciones() => View();
 
-            [HttpGet, Authorize(Roles = "Analista,Admin")]
-            public async Task<IActionResult> ObtenerAnalisis()
+        // Pantalla para el reporte de tracking
+        public IActionResult Reporte() => View();
+
+        // =======================
+        // LISTAS PARA ANALISTA
+        // (Solicitudes con estado Registrado o Devolución)
+        // =======================
+        [HttpGet, Authorize(Roles = "Analista,Administrador")]
+        public async Task<IActionResult> ObtenerAnalisis()
+        {
+            var list = await _sol.GetAllAsync();
+
+            var data = (list ?? new List<SolicitudDto>())
+                        .Where(x => (x.Estado ?? "").Trim() == "Registrado" || (x.Estado ?? "").Trim() == "Devolucion")
+                        .ToList();
+
+            // Devuelve el formato esperado por DataTables
+            return Json(new { data });
+        }
+
+        // =======================
+        // LISTAS PARA GESTOR
+        // (Solicitudes en estado EnviadoAprobacion)
+        // =======================
+        [HttpGet, Authorize(Roles = "Gestor,Administrador")]
+        public async Task<IActionResult> ObtenerAprobaciones()
+        {
+            var list = await _sol.GetAllAsync();
+
+            var data = (list ?? new List<SolicitudDto>())
+                        .Where(x => (x.Estado ?? "").Trim() == "EnviadoAprobacion")
+                        .ToList();
+
+            return Json(new { data });
+        }
+
+        // Modelo para cambio de estado
+        public class CambioVm
+        {
+            public int IdSolicitud { get; set; }
+            public string NuevoEstado { get; set; } = "";
+            public string? Comentario { get; set; }
+        }
+
+        // =======================
+        // CAMBIA EL ESTADO DE UNA SOLICITUD
+        // (Analista o Gestor según corresponda)
+        // =======================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CambiarEstado(CambioVm m)
+        {
+            // Busca la solicitud
+            var s = await _sol.GetByIdAsync(m.IdSolicitud);
+            if (s is null)
+                return Json(new { esError = true, mensaje = "Solicitud no existe" });
+
+            // Actualiza el estado
+            s.Estado = m.NuevoEstado;
+            await _sol.UpdateAsync(s);
+
+            // Determina la acción registrada en el tracking
+            var accion = m.NuevoEstado switch
             {
-                var all = await _sol.ObtenerTodosAsync();
-                if (all.EsError) return Json(all);
+                "EnviadoAprobacion" => "Enviada aprobación",
+                "Aprobado" => "Aprobada",
+                "Devolucion" => "Devolución",
+                _ => "Cambio estado"
+            };
 
-                var data = (all.Data ?? new List<SolicitudDto>())
-                           .Where(x => x.Estado == "Registrado" || x.Estado == "Devolucion")
-                           .ToList();
-                return Json(new CustomResponse<List<SolicitudDto>> { Data = data });
-            }
+            // Obtiene el usuario actual
+            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                         ?? (User?.Identity?.Name ?? "n/a");
 
-            [HttpGet, Authorize(Roles = "Gestor,Admin")]
-            public async Task<IActionResult> ObtenerAprobaciones()
-            {
-                var all = await _sol.ObtenerTodosAsync();
-                if (all.EsError) return Json(all);
+            // Guarda el movimiento en el tracking
+            await _trk.GuardarAsync(s.IdSolicitud, s.Estado, accion, m.Comentario, userId);
 
-                var data = (all.Data ?? new List<SolicitudDto>())
-                           .Where(x => x.Estado == "EnviadoAprobacion")
-                           .ToList();
-                return Json(new CustomResponse<List<SolicitudDto>> { Data = data });
-            }
+            // Respuesta para AJAX
+            return Json(new { esError = false, mensaje = "Estado actualizado" });
+        }
 
-            public class CambioVm
-            {
-                public int IdSolicitud { get; set; }
-                public string NuevoEstado { get; set; } = "";
-                public string? Comentario { get; set; }
-            }
+        // =======================
+        // OBTIENE EL HISTORIAL (TRACKING) DE UNA SOLICITUD
+        // =======================
+        [HttpGet]
+        public async Task<IActionResult> ObtenerTracking(int id)
+        {
+            var resp = await _trk.ListarAsync(id);
+            // Devuelve el formato estándar { esError, data, mensaje }
+            return Json(resp);
+        }
 
-            [HttpPost]
-            [ValidateAntiForgeryToken]
-            public async Task<IActionResult> CambiarEstado(CambioVm m)
-            {
-                var get = await _sol.ObtenerPorIdAsync(m.IdSolicitud);
-                if (get.EsError || get.Data == null)
-                    return Json(new CustomResponse<object> { EsError = true, Mensaje = "Solicitud no existe" });
+        // =======================
+        // VISTA DEL TRACKING INDIVIDUAL
+        // =======================
+        [HttpGet]
+        public IActionResult Tracking(int id) => View(new TrackingPageVm { IdSolicitud = id });
 
-                var s = get.Data;
-                s.Estado = m.NuevoEstado;
-                var upd = await _sol.ActualizarAsync(s);
-                if (upd.EsError) return Json(new CustomResponse<object> { EsError = true, Mensaje = upd.Mensaje });
-
-                var accion = m.NuevoEstado switch
-                {
-                    "EnviadoAprobacion" => "Enviada aprobación",
-                    "Aprobado" => "Aprobada",
-                    "Devolucion" => "Devolución",
-                    _ => "Cambio estado"
-                };
-
-                var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "n/a";
-                await _trk.GuardarAsync(s.IdSolicitud, s.Estado, accion, m.Comentario, userId);
-
-                return Json(new CustomResponse<object> { Mensaje = "Estado actualizado" });
-            }
-
-            [HttpGet]
-            public async Task<IActionResult> ObtenerTracking(int id)
-            {
-                var resp = await _trk.ListarAsync(id);
-                return Json(resp);
-            }
-
-            [HttpGet]
-            public IActionResult Tracking(int id) => View(new TrackingPageVm { IdSolicitud = id });
-
-            public class TrackingPageVm
-            {
-                public int IdSolicitud { get; set; }
-            }
+        // ViewModel usado en la vista Tracking.cshtml
+        public class TrackingPageVm
+        {
+            public int IdSolicitud { get; set; }
         }
     }
+}
