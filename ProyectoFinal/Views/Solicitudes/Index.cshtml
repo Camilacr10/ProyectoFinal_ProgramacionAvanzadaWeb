@@ -1,0 +1,117 @@
+﻿@model IEnumerable<ProyectoFinalBLL.DTOs.SolicitudDto>
+@{
+    ViewData["Title"] = "Solicitudes";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-table {
+        border-radius: 1rem;
+        border: 1px solid rgba(0,0,0,.06);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background: #f8f9fa;
+    }
+
+    .badge-status {
+        font-size: .85rem;
+    }
+</style>
+
+<div class="page-header">
+    <h2 class="m-0">Solicitudes</h2>
+    <div class="d-flex gap-2">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
+        <a asp-action="Create" class="btn btn-primary">Crear Solicitud</a>
+    </div>
+</div>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay solicitudes registradas.</div>
+}
+else
+{
+    <div class="card-table">
+        <table id="tablaSolicitudes" class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cédula</th>
+                    <th>Cliente</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th>Comentario</th>
+                    <th>Documento</th>
+                    <th>Fecha</th>
+                    <th class="text-end">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in Model)
+                {
+                    var cedula = s.Cliente?.Identificacion ?? "-";
+                    var nombre = s.Cliente is null ? "-" : $"{s.Cliente.Nombre} {s.Cliente.Apellido}";
+                    var doc = s.DocumentoPath;
+                    var estado = s.Estado ?? "Registrado";
+                    var comentario = string.IsNullOrWhiteSpace(s.Comentarios) ? "-" : s.Comentarios;
+
+                    <tr>
+                        <td>@s.IdSolicitud</td>
+                        <td>@cedula</td>
+                        <td>@nombre</td>
+                        <td>₡@s.Monto.ToString("#,##0.##")</td>
+                        <td>@s.Estado</td>
+                        <td>@s.Comentarios</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(doc))
+                            {
+                                <a href="@doc" target="_blank" class="link-primary">Ver</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Sin archivo</span>
+                            }
+                        </td>
+                        <td>@s.FechaSolicitud.ToString("yyyy-MM-dd HH:mm")</td>
+
+                        <td class="text-end text-nowrap">
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="@s.IdSolicitud"
+                                    data-name="@(s.Cliente is null ? "-" : $"{s.Cliente.Nombre} {s.Cliente.Apellido}")"
+                                    data-cedula="@(s.Cliente?.Identificacion ?? "-")"
+                                    data-monto="@s.Monto">
+                                Eliminar
+                            </button>
+
+                            <!-- formulario oculto existente -->
+                            <form asp-action="Delete"
+                                  asp-route-id="@s.IdSolicitud"
+                                  method="post"
+                                  class="d-inline delete-form-@s.IdSolicitud">
+                                @Html.AntiForgeryToken()
+                            </form>
+
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/js/solicitudes.js" asp-append-version="true"></script>
+    <partial name="_ValidationScriptsPartial" />
+}

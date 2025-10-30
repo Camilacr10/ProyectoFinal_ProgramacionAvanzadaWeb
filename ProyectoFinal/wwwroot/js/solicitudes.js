@@ -1,61 +1,95 @@
-﻿// Aislar funciones en módulo autoejecutable
-(() => {
+﻿(() => {
     const Solicitudes = {
         init() {
-            this.registrarEventos();
+            this.bindCedulaSelect(); // nuevo
+            this.bindCreate();
+            this.bindDelete();
         },
 
-        registrarEventos() {
-            // Click en Crear -> AJAX
-            $('#btnGuardarSolicitud').on('click', () => {
-                this.CrearSolicitud();
+        // ====== CÉDULA / CLIENTE ======
+        bindCedulaSelect() {
+            const cedulaSelect = document.getElementById('CedulaSelect');
+            const idClienteInput = document.getElementById('IdCliente');
+            const nombreInput = document.getElementById('NombreCliente');
+            const apellidoInput = document.getElementById('ApellidoCliente');
+
+            if (!cedulaSelect) return; // Solo aplica en Create
+
+            cedulaSelect.addEventListener('change', () => {
+                const opt = cedulaSelect.selectedOptions[0];
+                if (!opt || !opt.value) {
+                    idClienteInput.value = '';
+                    nombreInput.value = '';
+                    apellidoInput.value = '';
+                    return;
+                }
+
+                // Cargar datos desde los atributos del <option>
+                idClienteInput.value = opt.getAttribute('data-idcliente') || '';
+                nombreInput.value = opt.getAttribute('data-nombre') || '';
+                apellidoInput.value = opt.getAttribute('data-apellido') || '';
             });
-
-            // Evitar submit accidental por Enter (opcional)
-            $('#formCrearSolicitud').on('submit', (e) => e.preventDefault());
         },
 
-        CrearSolicitud() {
-            const form = $('#formCrearSolicitud');
+        // ====== CREATE ======
+        bindCreate() {
+            const form = document.getElementById('formCrearSolicitud');
+            const btn = document.getElementById('btnGuardarSolicitud');
+            if (!form || !btn) return; // no estamos en página de creación
 
-            // Si tienes jQuery Validate en la vista:
-            if (typeof form.valid === 'function' && !form.valid()) return;
+            form.addEventListener('submit', (e) => e.preventDefault());
+            btn.addEventListener('click', () => this.crearSolicitud(form));
+        },
 
-            const fd = new FormData(form[0]);
-            const token = $('input[name="__RequestVerificationToken"]').val();
+        crearSolicitud(form) {
+            if (typeof $(form).valid === 'function' && !$(form).valid()) return;
 
-            $.ajax({
-                url: form.attr('action'),
-                type: 'POST',
-                dataType: 'json',
-                headers: { 'RequestVerificationToken': token },
-                processData: false,
-                contentType: false,
-                data: fd,
-                success: function (response) {
+            const fd = new FormData(form);
+            const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+            fetch(form.getAttribute('action'), {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: fd
+            })
+                .then(async r => {
+                    const ct = r.headers.get('content-type') || '';
+                    if (!ct.includes('application/json')) {
+                        // Si la acción devuelve HTML por redirect, redirigimos a Index
+                        window.location.href = '/Solicitudes/Index';
+                        return null;
+                    }
+                    return r.json();
+                })
+                .then(response => {
+                    if (!response) return;
+
                     if (response && response.success) {
-                        // Datos del form
-                        const identificacion = $('#IdCliente').val();
-                        const montoNumber = Number($('#Monto').val() || 0);
+                        const cedulaSel = document.getElementById('CedulaSelect');
+                        const cedulaTxt = cedulaSel?.selectedOptions[0]?.value || '';
+                        const montoNumber = Number(document.getElementById('Monto')?.value || 0);
 
                         const mensaje = `
-                            Se ha realizado una solicitud para el usuario con identificación:
-                            <strong>${identificacion}</strong>
+                            Se ha realizado una solicitud para el usuario con cédula:
+                            <strong>${cedulaTxt}</strong>
                             por un monto de
                             <strong>₡${montoNumber.toLocaleString('es-CR')}</strong>.
                         `;
 
-                        $('#mensajeSolicitudExitosa').html(mensaje);
+                        const msgEl = document.getElementById('mensajeSolicitudExitosa');
+                        if (msgEl) msgEl.innerHTML = mensaje;
+                        const modalEl = document.getElementById('modalSolicitudExitosa');
+                        if (modalEl && window.bootstrap?.Modal) {
+                            new bootstrap.Modal(modalEl).show();
+                        }
 
-                        // Mostrar modal Bootstrap
-                        new bootstrap.Modal(document.getElementById('modalSolicitudExitosa')).show();
+                        form.reset();
 
-                        // Limpiar formulario
-                        form[0].reset();
-
-                        // ====== Ir al tracking ======
                         const id = response.idSolicitud || response.IdSolicitud || response.data?.idSolicitud;
-                        if (id) {
+                        if (id && window.Swal) {
                             Swal.fire({
                                 title: 'Solicitud creada',
                                 html: mensaje + '<br><br>¿Deseas ver el tracking?',
@@ -68,26 +102,78 @@
                                     window.location.href = `/FlujoSolicitudes/Tracking?id=${encodeURIComponent(id)}`;
                                 }
                             });
+                        } else {
+                            window.location.href = '/Solicitudes/Index';
                         }
 
                     } else {
-                        Swal.fire({
-                            title: 'Error',
-                            text: (response && response.message) || 'Hubo un error, por favor intente de nuevo.',
-                            icon: 'error'
-                        });
+                        const msg = (response && (response.message || response.error)) || 'Hubo un error, por favor intente de nuevo.';
+                        if (window.Swal) {
+                            Swal.fire({ title: 'Error', text: msg, icon: 'error' });
+                        } else {
+                            alert(msg);
+                        }
                     }
-                },
-                error: function () {
+                })
+                .catch(() => {
+                    if (window.Swal) {
+                        Swal.fire({ title: 'Error', text: 'No se pudo procesar la solicitud.', icon: 'error' });
+                    } else {
+                        alert('No se pudo procesar la solicitud.');
+                    }
+                });
+        },
+
+        // ====== DELETE ======
+        bindDelete() {
+            const table = document.getElementById('tablaSolicitudes');
+            if (!table) return;
+
+            document.addEventListener('click', (ev) => {
+                const btn = ev.target.closest('.btn-delete');
+                if (!btn) return;
+
+                const id = btn.getAttribute('data-id');
+                const nombre = btn.getAttribute('data-name') || '-';
+                const cedula = btn.getAttribute('data-cedula') || '-';
+                const monto = Number(btn.getAttribute('data-monto') || 0);
+
+                const form = document.querySelector('.delete-form-' + id);
+                if (!form) return;
+
+                const html = `
+      <div class="text-start" style="line-height:1.6">
+        <div>Se eliminará la <strong>solicitud #${id}</strong>.</div>
+        <div>Cliente: <strong>${nombre}</strong> <span class="text-muted">(${cedula})</span></div>
+        <div>Monto: <strong>₡${monto.toLocaleString('es-CR')}</strong></div>
+      </div>
+    `;
+
+                const doSubmit = () => form.submit();
+
+                if (window.Swal) {
                     Swal.fire({
-                        title: 'Error',
-                        text: 'No se pudo procesar la solicitud.',
-                        icon: 'error'
-                    });
+                        icon: 'warning',
+                        title: '¿Eliminar solicitud de crédito?',
+                        html,
+                        showCancelButton: true,
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        focusCancel: true,
+                        customClass: {
+                            confirmButton: 'btn btn-primary',
+                            cancelButton: 'btn btn-secondary'
+                        },
+                        buttonsStyling: false
+                    }).then(res => { if (res.isConfirmed) doSubmit(); });
+                } else {
+                    if (confirm(`¿Eliminar la solicitud #${id} de ${nombre}?`)) doSubmit();
                 }
-            });
+            }, false);
         }
+
     };
 
-    $(document).ready(() => Solicitudes.init());
+    document.addEventListener('DOMContentLoaded', () => Solicitudes.init());
 })();

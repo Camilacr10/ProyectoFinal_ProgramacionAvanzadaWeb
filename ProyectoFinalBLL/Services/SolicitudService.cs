@@ -69,7 +69,8 @@ namespace ProyectoFinalBLL.Services
             Monto = e.Monto,
             Estado = e.Estado,
             FechaSolicitud = e.FechaSolicitud,
-            DocumentoPath = e.DocumentoPath
+            DocumentoPath = e.DocumentoPath,
+            Cliente = e.Cliente
         };
 
         private static Solicitud MapToEntity(SolicitudDto d) => new()

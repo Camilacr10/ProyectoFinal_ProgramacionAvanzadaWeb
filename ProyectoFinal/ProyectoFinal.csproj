@@ -7,7 +7,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="bootstrap" Version="5.3.8" />
 		<PackageReference Include="jQuery" Version="3.7.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
@@ -24,6 +23,10 @@
 	<ItemGroup>
 		<ProjectReference Include="..\ProyectoFinalBLL\ProyectoFinalBLL.csproj" />
 		<ProjectReference Include="..\ProyectoFinalDAL\ProyectoFinalDAL.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="wwwroot\uploads\solicitudes\" />
 	</ItemGroup>
 
 </Project>
