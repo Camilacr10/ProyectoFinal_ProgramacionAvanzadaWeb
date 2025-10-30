@@ -1,15 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+using ProyectoFinalDAL.Entidades;
 
 namespace ProyectoFinal.Controllers
 {    public class SolicitudesController : Controller
     {
         private readonly ISolicitudService _service;
-        public SolicitudesController(ISolicitudService service)
+                private readonly IClienteService _clientes;
+
+        public SolicitudesController(ISolicitudService service, IClienteService clientes)
         {
             _service = service;
+            _clientes = clientes;
+
         }
 
         public async Task<IActionResult> Index()
@@ -18,30 +23,38 @@ namespace ProyectoFinal.Controllers
             return View(solicitudes);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View();
+            // Solo lectura de clientes para armar el dropdown de cédulas
+            ViewBag.Clientes = await _clientes.GetAllAsync(); // IEnumerable<ClienteDto>
+            return View(new SolicitudDto());
         }
 
+        // POST: /Solicitudes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SolicitudDto dto)
         {
-            if (!ModelState.IsValid) return View(dto);
+            if (dto.IdCliente <= 0)
+                ModelState.AddModelError(nameof(dto.IdCliente), "Selecciona una cédula válida.");
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Clientes = await _clientes.GetAllAsync();
+                return View(dto);
+            }
 
             try
             {
                 await _service.CreateAsync(dto);
-
-                // Mensaje para el modal de éxito en Index
                 TempData["ok"] = "La solicitud de crédito fue creada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch
+            catch (Exception ex)
             {
-                // Mensaje de error en Create
                 TempData["error"] = "Hubo un error, por favor intente de nuevo.";
-                ModelState.AddModelError(string.Empty, "Hubo un error, por favor intente de nuevo.");
+                ModelState.AddModelError(string.Empty, ex.Message);
+                ViewBag.Clientes = await _clientes.GetAllAsync();
                 return View(dto);
             }
         }
