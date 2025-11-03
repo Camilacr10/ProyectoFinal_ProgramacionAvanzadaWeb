@@ -1,7 +1,7 @@
-﻿using System.Linq; // para unir errores de ModelState
+﻿using System.Linq; 
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinalBLL.DTOs;        // ClienteDto y CustomResponse<T>
-using ProyectoFinalBLL.Interfaces;  // IClienteService
+using ProyectoFinalBLL.DTOs;       
+using ProyectoFinalBLL.Interfaces;  
 
 namespace ProyectoFinal.Controllers
 {
@@ -14,8 +14,6 @@ namespace ProyectoFinal.Controllers
             _service = service;
         }
 
-        // ================= VISTAS (fallback) =================
-
         // GET: /Clientes
         public async Task<IActionResult> Index()
         {
@@ -23,7 +21,6 @@ namespace ProyectoFinal.Controllers
             return View(list);
         }
 
-        
         public async Task<IActionResult> Details(int id)
         {
             var dto = await _service.GetByIdAsync(id);
@@ -45,21 +42,21 @@ namespace ProyectoFinal.Controllers
             {
                 var errores = string.Join(" | ",
                     ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return Json(CustomResponse<string>.Fail(errores));
+                return BadRequest(CustomResponse<string>.Fail(errores));
             }
 
             try
             {
                 var id = await _service.CreateAsync(dto);
-                return Json(CustomResponse<int>.Ok(id, "Cliente creado."));
+                return Ok(CustomResponse<int>.Ok(id, "Cliente creado."));
             }
             catch (InvalidOperationException ex)
             {
-                return Json(CustomResponse<string>.Fail(ex.Message));
+                return BadRequest(CustomResponse<string>.Fail(ex.Message));
             }
             catch
             {
-                return Json(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
+                return BadRequest(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
             }
         }
 
@@ -69,7 +66,7 @@ namespace ProyectoFinal.Controllers
         {
             var dto = await _service.GetByIdAsync(id);
             if (dto is null) return NotFound();
-            return PartialView("_EditModal", dto);
+            return PartialView("Edit", dto);
         }
 
         [HttpPost]
@@ -80,25 +77,25 @@ namespace ProyectoFinal.Controllers
             {
                 var errores = string.Join(" | ",
                     ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return Json(CustomResponse<string>.Fail(errores));
+                return BadRequest(CustomResponse<string>.Fail(errores));
             }
 
             try
             {
                 await _service.UpdateAsync(dto);
-                return Json(CustomResponse<string>.Ok(null, "Cliente actualizado."));
+                return Ok(CustomResponse<string>.Ok(null, "Cliente actualizado."));
             }
             catch (InvalidOperationException ex)
             {
-                return Json(CustomResponse<string>.Fail(ex.Message));
+                return BadRequest(CustomResponse<string>.Fail(ex.Message));
             }
             catch (KeyNotFoundException)
             {
-                return Json(CustomResponse<string>.Fail("Cliente no encontrado."));
+                return BadRequest(CustomResponse<string>.Fail("Cliente no encontrado."));
             }
             catch
             {
-                return Json(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
+                return BadRequest(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
             }
         }
 
@@ -118,13 +115,16 @@ namespace ProyectoFinal.Controllers
             try
             {
                 await _service.DeleteAsync(IdCliente);
-                return Json(CustomResponse<string>.Ok(null, "Cliente eliminado."));
+                return Ok(CustomResponse<string>.Ok(null, "Cliente eliminado."));
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest(CustomResponse<string>.Fail("Cliente no encontrado."));
             }
             catch
             {
-                return Json(CustomResponse<string>.Fail("No se pudo eliminar el cliente."));
+                return BadRequest(CustomResponse<string>.Fail("No se pudo eliminar el cliente."));
             }
         }
-
     }
 }

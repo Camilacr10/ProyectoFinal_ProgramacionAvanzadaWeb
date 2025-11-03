@@ -45,3 +45,58 @@
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
     </div>
 </form>
+
+<!-- Script para SweetAlert -->
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("editForm");
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const actionUrl = form.getAttribute("action");
+
+                try {
+                    const response = await fetch(actionUrl, {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Cambios guardados",
+                            text: "El cliente se actualizó correctamente.",
+                            confirmButtonText: "Aceptar",
+                            confirmButtonColor: "#3085d6"
+                        }).then(() => {
+                            // Si usas modal Bootstrap, ciérralo
+                            const modal = bootstrap.Modal.getInstance(document.querySelector(".modal"));
+                            modal.hide();
+
+                            // Recargar la página o actualizar tabla
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error al guardar",
+                            text: "No se pudieron guardar los cambios. Intenta de nuevo.",
+                            confirmButtonText: "Aceptar"
+                        });
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error de conexión",
+                        text: "Ocurrió un problema al enviar la solicitud.",
+                        confirmButtonText: "Aceptar"
+                    });
+                }
+            });
+        });
+    </script>
+}
