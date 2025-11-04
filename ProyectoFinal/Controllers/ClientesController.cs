@@ -66,7 +66,7 @@ namespace ProyectoFinal.Controllers
         {
             var dto = await _service.GetByIdAsync(id);
             if (dto is null) return NotFound();
-            return PartialView("Edit", dto);
+            return PartialView("_EditModal", dto);
         }
 
         [HttpPost]

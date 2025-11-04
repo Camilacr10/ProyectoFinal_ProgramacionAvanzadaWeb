@@ -7,6 +7,10 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Remove="Views\Clientes\EditModal.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="jQuery" Version="3.7.1" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
