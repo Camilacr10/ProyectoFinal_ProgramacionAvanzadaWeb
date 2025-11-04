@@ -1,10 +1,13 @@
-﻿using System.Linq; 
+﻿using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ProyectoFinalBLL.DTOs;       
-using ProyectoFinalBLL.Interfaces;  
+using ProyectoFinalBLL.DTOs;
+using ProyectoFinalBLL.Interfaces;
 
 namespace ProyectoFinal.Controllers
 {
+    [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class ClientesController : Controller
     {
         private readonly IClienteService _service;
@@ -14,17 +17,34 @@ namespace ProyectoFinal.Controllers
             _service = service;
         }
 
-        // GET: /Clientes
+        // PANTALLA LISTA
         public async Task<IActionResult> Index()
         {
             var list = await _service.GetAllAsync();
             return View(list);
         }
 
+        // DETALLE
         public async Task<IActionResult> Details(int id)
         {
             var dto = await _service.GetByIdAsync(id);
             return dto is null ? NotFound() : View(dto);
+        }
+
+        // ===== JSON estilo Flujo (listas planas / DataTables) =====
+        [HttpGet]
+        public async Task<IActionResult> Obtener()
+        {
+            var data = await _service.GetAllAsync();
+            return Json(new { data });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ObtenerLigero()
+        {
+            var data = (await _service.GetAllAsync())
+                .Select(c => new { c.IdCliente, c.Identificacion, c.Nombre });
+            return Json(new { esError = false, data });
         }
 
         // ================== MODALES (AJAX + CustomResponse) ==================
@@ -35,7 +55,6 @@ namespace ProyectoFinal.Controllers
             => PartialView("Create", new ClienteDto());
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateModal(ClienteDto dto)
         {
             if (!ModelState.IsValid)
@@ -45,19 +64,8 @@ namespace ProyectoFinal.Controllers
                 return BadRequest(CustomResponse<string>.Fail(errores));
             }
 
-            try
-            {
-                var id = await _service.CreateAsync(dto);
-                return Ok(CustomResponse<int>.Ok(id, "Cliente creado."));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(CustomResponse<string>.Fail(ex.Message));
-            }
-            catch
-            {
-                return BadRequest(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
-            }
+            var id = await _service.CreateAsync(dto);
+            return Ok(CustomResponse<int>.Ok(id, "Cliente creado."));
         }
 
         // EDIT
@@ -70,7 +78,6 @@ namespace ProyectoFinal.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditModal(ClienteDto dto)
         {
             if (!ModelState.IsValid)
@@ -80,23 +87,13 @@ namespace ProyectoFinal.Controllers
                 return BadRequest(CustomResponse<string>.Fail(errores));
             }
 
-            try
-            {
-                await _service.UpdateAsync(dto);
-                return Ok(CustomResponse<string>.Ok(null, "Cliente actualizado."));
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(CustomResponse<string>.Fail(ex.Message));
-            }
-            catch (KeyNotFoundException)
-            {
+            // Si no existe, actúa igual que en Flujo: respuesta clara sin lanzar excepción
+            var existe = await _service.GetByIdAsync(dto.IdCliente);
+            if (existe is null)
                 return BadRequest(CustomResponse<string>.Fail("Cliente no encontrado."));
-            }
-            catch
-            {
-                return BadRequest(CustomResponse<string>.Fail("Ocurrió un error inesperado."));
-            }
+
+            await _service.UpdateAsync(dto);
+            return Ok(CustomResponse<string>.Ok(null, "Cliente actualizado."));
         }
 
         // DELETE
@@ -109,22 +106,14 @@ namespace ProyectoFinal.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteModalConfirmed(int IdCliente)
         {
-            try
-            {
-                await _service.DeleteAsync(IdCliente);
-                return Ok(CustomResponse<string>.Ok(null, "Cliente eliminado."));
-            }
-            catch (KeyNotFoundException)
-            {
+            var existe = await _service.GetByIdAsync(IdCliente);
+            if (existe is null)
                 return BadRequest(CustomResponse<string>.Fail("Cliente no encontrado."));
-            }
-            catch
-            {
-                return BadRequest(CustomResponse<string>.Fail("No se pudo eliminar el cliente."));
-            }
+
+            await _service.DeleteAsync(IdCliente);
+            return Ok(CustomResponse<string>.Ok(null, "Cliente eliminado."));
         }
     }
 }

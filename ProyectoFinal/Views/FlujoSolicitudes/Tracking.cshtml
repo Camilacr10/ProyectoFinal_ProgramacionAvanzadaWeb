@@ -4,33 +4,43 @@
 }
 
 <!-- Encabezado con título y botón para volver -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>@ViewData["Title"]</h3>
-    <a asp-action="Analisis" class="btn btn-secondary">Volver</a>
+<div class="page-header">
+    <h2 class="m-0">@ViewData["Title"]</h2>
+    <a asp-action="Analisis" class="btn btn-secondary">← Volver</a>
 </div>
 
 <!-- Campo con el ID de la solicitud (solo lectura) -->
-<div class="mb-3">
-    <label class="form-label">ID de Solicitud</label>
-    <input id="gestionId" class="form-control" value="@Model.IdSolicitud" readonly />
+<div class="card p-3 mb-3 rounded-2xl shadow-soft">
+    <div class="row g-3">
+        <div class="col-sm-6 col-md-4">
+            <label class="form-label">ID de Solicitud</label>
+            <input id="gestionId" class="form-control" value="@Model.IdSolicitud" readonly />
+        </div>
+
+        <!-- Botón para cargar el historial -->
+        <div class="col-md-auto d-flex align-items-end">
+            <button id="btnConsultar" class="btn btn-brand hover-raise">Cargar Historial</button>
+        </div>
+    </div>
 </div>
 
-<!-- Botón para cargar el historial -->
-<button id="btnConsultar" class="btn btn-primary mb-3">Cargar Historial</button>
-
 <!-- Tabla que mostrará todo el seguimiento (tracking) -->
-<table id="tablaTracking" class="table table-striped">
-    <thead>
-        <tr>
-            <th>Solicitud</th>
-            <th>Acción</th>
-            <th>Comentario</th>
-            <th>Estado</th>
-            <th>Usuario</th>
-            <th>Fecha</th>
-        </tr>
-    </thead>
-</table>
+<div class="card-table">
+    <div class="table-wrapper">
+        <table id="tablaTracking" class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>Solicitud</th>
+                    <th>Acción</th>
+                    <th>Comentario</th>
+                    <th>Estado</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
 
 @section Scripts {
     <!-- Librería DataTables (para paginar y mostrar los registros) -->

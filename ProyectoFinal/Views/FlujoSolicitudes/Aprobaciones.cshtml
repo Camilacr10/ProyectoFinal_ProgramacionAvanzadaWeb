@@ -3,8 +3,9 @@
 }
 
 <!-- Título principal de la pantalla -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>@ViewData["Title"]</h3>
+<div class="page-header">
+    <h2 class="m-0">@ViewData["Title"]</h2>
+    <div></div>
 </div>
 
 <!-- Token antiforgery (necesario para peticiones POST seguras desde JS) -->
@@ -13,17 +14,21 @@
 </form>
 
 <!-- Tabla principal de aprobaciones -->
-<table id="tablaAprob" class="table table-striped">
-    <thead>
-        <tr>
-            <th>#</th>
-            <th>Cliente</th>
-            <th>Monto</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-</table>
+<div class="card-table">
+    <div class="table-wrapper">
+        <table id="tablaAprob" class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                    <th class="table-actions">Acciones</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
 
 @section Scripts {
     <!-- Validaciones de formularios -->

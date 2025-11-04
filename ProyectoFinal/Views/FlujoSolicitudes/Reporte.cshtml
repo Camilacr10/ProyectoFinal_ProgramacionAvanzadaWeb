@@ -3,34 +3,43 @@
 }
 
 <!-- Título principal de la pantalla -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>@ViewData["Title"]</h3>
+<div class="page-header">
+    <h2 class="m-0">@ViewData["Title"]</h2>
+    <div></div>
 </div>
 
 <!-- Campo para digitar el ID de la solicitud a consultar -->
-<div class="mb-3">
-    <label for="gestionId" class="form-label">ID de Solicitud</label>
-    <input id="gestionId" class="form-control" placeholder="Ingrese el ID de la solicitud" />
-</div>
+<div class="card p-3 mb-3 rounded-2xl shadow-soft">
+    <div class="row g-3 align-items-end">
+        <div class="col-sm-6 col-md-4">
+            <label for="gestionId" class="form-label">ID de Solicitud</label>
+            <input id="gestionId" class="form-control" placeholder="Ingrese el ID de la solicitud" />
+        </div>
 
-<!-- Botón para consultar el historial -->
-<div class="mb-3">
-    <button id="btnConsultar" class="btn btn-primary">Consultar</button>
+        <!-- Botón para consultar el historial -->
+        <div class="col-sm-6 col-md-auto">
+            <button id="btnConsultar" class="btn btn-brand hover-raise">Consultar</button>
+        </div>
+    </div>
 </div>
 
 <!-- Tabla donde se mostrará el tracking completo -->
-<table id="tablaTracking" class="table table-striped">
-    <thead>
-        <tr>
-            <th>Solicitud</th>
-            <th>Acción</th>
-            <th>Comentario</th>
-            <th>Estado</th>
-            <th>Usuario</th>
-            <th>Fecha</th>
-        </tr>
-    </thead>
-</table>
+<div class="card-table">
+    <div class="table-wrapper">
+        <table id="tablaTracking" class="table table-hover align-middle m-0">
+            <thead>
+                <tr>
+                    <th>Solicitud</th>
+                    <th>Acción</th>
+                    <th>Comentario</th>
+                    <th>Estado</th>
+                    <th>Usuario</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>
 
 @section Scripts {
     <!-- Validaciones generales -->

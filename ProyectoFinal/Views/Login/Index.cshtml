@@ -2,58 +2,132 @@
 
 @{
     ViewData["Title"] = "Iniciar Sesión";
+
+    
 }
 
+
+
+
 <style>
-    .login-container {
-        max-width: 400px;
-        margin: 5% auto;
-        padding: 2rem;
-        border: 1px solid rgba(0,0,0,.1);
-        border-radius: 1rem;
-        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
-        background-color: #fff;
+    body {
+        background-color: #f5f7fb;
+        font-family: 'Segoe UI', sans-serif;
     }
 
-        .login-container h2 {
-            margin-bottom: 1.5rem;
-            text-align: center;
-            color: #0d6efd;
+    .login-container {
+        max-width: 420px;
+        margin: 6% auto;
+        padding: 2.5rem 2rem;
+        background-color: #fff;
+        border-radius: 1.25rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        text-align: center;
+    }
+
+    .login-avatar {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+        .login-avatar img {
+            width: 55px;
+            height: 55px;
+            opacity: 0.85;
         }
 
-        .login-container .btn-primary {
-            width: 100%;
+    h2 {
+        font-weight: 700;
+        color: #343a40;
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        text-align: left;
+        display: block;
+    }
+
+    .form-control {
+        border-radius: 0.75rem;
+        border: 1px solid #ced4da;
+        padding: 0.65rem 0.75rem;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .form-control:focus {
+            border-color: #6f42c1;
+            box-shadow: 0 0 0 0.15rem rgba(111, 66, 193, 0.25);
+        }
+
+    .btn-login {
+        background-color: #6f42c1;
+        border: none;
+        color: #fff;
+        width: 100%;
+        border-radius: 0.75rem;
+        padding: 0.7rem;
+        font-weight: 600;
+        transition: all 0.2s ease-in-out;
+    }
+
+        .btn-login:hover {
+            background-color: #59329b;
+            box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3);
         }
 
     .text-error {
-        color: red;
+        color: #dc3545;
         font-size: 0.875rem;
     }
+
+    .login-hint {
+        margin-top: 1.25rem;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+        .login-hint strong {
+            color: #5c4d9b;
+        }
 </style>
 
 <div class="login-container">
+    <div class="login-avatar">
+        <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Usuario" />
+    </div>
+
     <h2>Iniciar Sesión</h2>
 
     <form asp-action="Index" method="post">
         <div asp-validation-summary="All" class="text-error mb-2"></div>
 
         <div class="mb-3">
-            <label asp-for="Correo" class="form-label">Correo</label>
-            <input asp-for="Correo" class="form-control" />
+            <label asp-for="Correo" class="form-label">Correo electrónico</label>
+            <input asp-for="Correo" class="form-control"/>
             <span asp-validation-for="Correo" class="text-error"></span>
         </div>
 
         <div class="mb-3">
             <label asp-for="Clave" class="form-label">Contraseña</label>
-            <input asp-for="Clave" type="password" class="form-control" />
+            <input asp-for="Clave" type="password" class="form-control"  />
             <span asp-validation-for="Clave" class="text-error"></span>
         </div>
 
-        <button type="submit" class="btn btn-primary">Ingresar</button>
+        <button type="submit" class="btn btn-login">Ingresar</button>
     </form>
 
-    <div class="mt-3 text-center text-muted">
-        Usuario predeterminado: <strong>admin@sgc.com</strong> / <strong>Admin123!</strong>
+    <div class="login-hint">
+        Usuario predeterminado:<br>
+        <strong>admin@sgc.com</strong> / <strong>Admin123!</strong>
     </div>
 </div>
 
