@@ -55,6 +55,7 @@ builder.Services.AddScoped<ISolicitudRepository, SolicitudRepository>();
 // Tracking
 builder.Services.AddScoped<ITrackingServicio, TrackingServicio>();
 builder.Services.AddScoped<ITrackingRepositorio, TrackingRepositorio>();
+builder.Services.AddScoped<IFlujoSolicitudesServicio, FlujoSolicitudesServicio>();
 
 
 // ======================================================

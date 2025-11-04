@@ -9,15 +9,12 @@ namespace ProyectoFinal.Controllers
     [Authorize]
     public class FlujoSolicitudesController : Controller
     {
-        // Servicio de solicitudes
-        private readonly ISolicitudService _sol;
-        // Servicio de tracking (historial de movimientos)
-        private readonly ITrackingServicio _trk;
+        // Servicio de flujo
+        private readonly IFlujoSolicitudesServicio _flujo;
 
-        public FlujoSolicitudesController(ISolicitudService sol, ITrackingServicio trk)
+        public FlujoSolicitudesController(IFlujoSolicitudesServicio flujo)
         {
-            _sol = sol;
-            _trk = trk;
+            _flujo = flujo;
         }
 
         // Pantalla para análisis de solicitudes (rol Analista/Admin)
@@ -36,12 +33,7 @@ namespace ProyectoFinal.Controllers
         [HttpGet, Authorize(Roles = "Analista,Administrador")]
         public async Task<IActionResult> ObtenerAnalisis()
         {
-            var list = await _sol.GetAllAsync();
-
-            var data = (list ?? new List<SolicitudDto>())
-                        .Where(x => (x.Estado ?? "").Trim() == "Registrado" || (x.Estado ?? "").Trim() == "Devolucion")
-                        .ToList();
-
+            var data = await _flujo.ObtenerAnalisisAsync();
             // Devuelve el formato esperado por DataTables
             return Json(new { data });
         }
@@ -53,12 +45,7 @@ namespace ProyectoFinal.Controllers
         [HttpGet, Authorize(Roles = "Gestor,Administrador")]
         public async Task<IActionResult> ObtenerAprobaciones()
         {
-            var list = await _sol.GetAllAsync();
-
-            var data = (list ?? new List<SolicitudDto>())
-                        .Where(x => (x.Estado ?? "").Trim() == "EnviadoAprobacion")
-                        .ToList();
-
+            var data = await _flujo.ObtenerAprobacionesAsync();
             return Json(new { data });
         }
 
@@ -78,33 +65,13 @@ namespace ProyectoFinal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CambiarEstado(CambioVm m)
         {
-            // Busca la solicitud
-            var s = await _sol.GetByIdAsync(m.IdSolicitud);
-            if (s is null)
-                return Json(new { esError = true, mensaje = "Solicitud no existe" });
-
-            // Actualiza el estado
-            s.Estado = m.NuevoEstado;
-            await _sol.UpdateAsync(s);
-
-            // Determina la acción registrada en el tracking
-            var accion = m.NuevoEstado switch
-            {
-                "EnviadoAprobacion" => "Enviada aprobación",
-                "Aprobado" => "Aprobada",
-                "Devolucion" => "Devolución",
-                _ => "Cambio estado"
-            };
-
-            // Obtiene el usuario actual
-            var userId = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value
-                         ?? (User?.Identity?.Name ?? "n/a");
-
-            // Guarda el movimiento en el tracking
-            await _trk.GuardarAsync(s.IdSolicitud, s.Estado, accion, m.Comentario, userId);
+            var resp = await _flujo.CambiarEstadoAsync(m.IdSolicitud, m.NuevoEstado, m.Comentario, User);
 
             // Respuesta para AJAX
-            return Json(new { esError = false, mensaje = "Estado actualizado" });
+            if (resp.EsError)
+                return Json(new { esError = true, mensaje = resp.Mensaje ?? "No se pudo actualizar" });
+
+            return Json(new { esError = false, mensaje = resp.Mensaje ?? "Estado actualizado" });
         }
 
         // =======================
@@ -113,7 +80,7 @@ namespace ProyectoFinal.Controllers
         [HttpGet]
         public async Task<IActionResult> ObtenerTracking(int id)
         {
-            var resp = await _trk.ListarAsync(id);
+            var resp = await _flujo.ObtenerTrackingAsync(id);
             // Devuelve el formato estándar { esError, data, mensaje }
             return Json(resp);
         }
