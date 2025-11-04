@@ -5,8 +5,10 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
+using ProyectoFinalDAL.Entidades;
 
 namespace ProyectoFinalBLL.Services
 {
@@ -18,14 +20,23 @@ namespace ProyectoFinalBLL.Services
         // Servicio de tracking (historial de movimientos)
         private readonly ITrackingServicio _trk;
 
-        // Mapper opcional - No se usa porque los datos que entran y salen de este servicio ya están mapeados en DTOs en ISolicitudService y ITrackingServicio
-        private readonly IMapper _mapper;
+        // Servicio de clientes
+        private readonly IClienteService _clientes;
 
-        public FlujoSolicitudesServicio(ISolicitudService sol, ITrackingServicio trk, IMapper mapper)
+        // Servicio de usuarios (Identity)
+        private readonly UserManager<ApplicationUser> _userManager;
+
+        public FlujoSolicitudesServicio(
+            ISolicitudService sol,
+            ITrackingServicio trk,
+            IClienteService clientes,
+            UserManager<ApplicationUser> userManager
+        )
         {
             _sol = sol;
             _trk = trk;
-            _mapper = mapper;
+            _clientes = clientes;
+            _userManager = userManager;
         }
 
         // =======================
@@ -114,6 +125,39 @@ namespace ProyectoFinalBLL.Services
             // Devuelve el formato estándar { esError, data, mensaje }
             var resp = await _trk.ListarAsync(idSolicitud);
             return resp;
+        }
+
+        // =======================
+        // LISTA LIGERA DE CLIENTES PARA MAPA (IdCliente -> Identificacion)
+        // =======================
+        public async Task<List<ClienteLigeroDto>> ObtenerClientesLigeroAsync()
+        {
+            var list = await _clientes.GetAllAsync();
+
+            return (list ?? new List<ClienteDto>())
+                .Select(c => new ClienteLigeroDto
+                {
+                    IdCliente = c.IdCliente,
+                    Identificacion = c.Identificacion ?? ""
+                })
+                .ToList();
+        }
+
+        // =======================
+        // LISTA LIGERA DE USUARIOS PARA MAPA (Id -> UserName / Email)
+        // =======================
+        public async Task<List<UsuarioLigeroDto>> ObtenerUsuariosLigeroAsync()
+        {
+            var usuarios = _userManager.Users.ToList();
+
+            return usuarios
+                .Select(u => new UsuarioLigeroDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName ?? "",
+                    Email = u.Email ?? ""
+                })
+                .ToList();
         }
     }
 }

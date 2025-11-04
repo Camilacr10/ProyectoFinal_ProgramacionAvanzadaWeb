@@ -31,4 +31,21 @@ namespace ProyectoFinalBLL.DTOs
 
         public DateTime Fecha { get; set; }
     }
+
+
+    // CLASE LIGERA PARA LISTA Clientes
+    public class ClienteLigeroDto
+    {
+        public int IdCliente { get; set; }
+        public string Identificacion { get; set; } = "";
+    }
+
+
+    // CLASE LIGERA PARA LISTA Usuarios
+    public class UsuarioLigeroDto
+    {
+        public string Id { get; set; } = "";
+        public string UserName { get; set; } = "";
+        public string Email { get; set; } = "";
+    }
 }

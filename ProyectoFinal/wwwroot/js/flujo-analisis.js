@@ -9,6 +9,8 @@
 
         // Inicializa la pantalla
         async init() {
+            // Precargar mapa de clientes para que no aparezca el ID
+            await this.cargarClientes();
             this.inicializarTabla();
             this.registrarEventos();
         },
@@ -32,7 +34,14 @@
                     {
                         data: 'idCliente',
                         title: 'Cliente',
-                        render: (id) => this.clientesMap[id] || id || ''
+                        render: (id, _t, row) => {
+                            // forzar llave string para evitar desajustes número/cadena
+                            const raw = (id ?? row?.idCliente ?? row?.IdCliente);
+                            const key = raw != null ? String(raw) : '';
+                            // si el backend ya manda un alias, usar como respaldo
+                            const posibleCedula = row?.clienteIdentificacion || row?.identificacionCliente;
+                            return this.clientesMap[key] || posibleCedula || (raw ?? '');
+                        }
                     },
                     { data: 'monto', title: 'Monto' },
                     { data: 'estado', title: 'Estado' },
@@ -42,9 +51,9 @@
                         title: 'Acciones',
                         // Botones principales de acción
                         render: (row) => `
-              <button class="btn btn-sm btn-primary enviar" data-id="${row.idSolicitud}">Enviar a aprobación</button>
-              <button class="btn btn-sm btn-warning devolver" data-id="${row.idSolicitud}">Devolución</button>
-              <a class="btn btn-sm btn-secondary" href="/FlujoSolicitudes/Tracking?id=${row.idSolicitud}">Tracking</a>`
+              <button class="btn btn-sm btn-outline-primary me-1 mb-1 enviar" data-id="${row.idSolicitud}">Enviar a aprobación</button>
+              <button class="btn btn-sm btn-outline-warning me-1 mb-1 devolver" data-id="${row.idSolicitud}">Devolución</button>
+              <a class="btn btn-sm btn-outline-secondary mb-1" href="/FlujoSolicitudes/Tracking?id=${row.idSolicitud}">Tracking</a>`
                     }
                 ],
                 responsive: true,
@@ -99,6 +108,27 @@
                 },
                 error: () => Swal.fire('Error', 'Error de comunicación', 'error')
             });
+        },
+
+        // Llena clientesMap con Id -> cédula
+        async cargarClientes() {
+            try {
+                // Puede responder /Clientes/ObtenerClientes
+                const r = await $.get('/Clientes/ObtenerClientes?_ts=' + Date.now());
+                if (r && !r.esError && Array.isArray(r.data)) {
+                    const map = {};
+                    r.data.forEach(c => {
+                        const id = c.idCliente ?? c.IdCliente ?? c.id ?? c.Id;
+                        const ced = c.identificacion ?? c.Identificacion ?? '';
+                        if (id != null) map[String(id)] = ced || ('Cliente #' + id);
+                    });
+                    this.clientesMap = map;
+                } else {
+                    this.clientesMap = {};
+                }
+            } catch {
+                this.clientesMap = {};
+            }
         }
     };
 

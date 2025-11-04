@@ -21,5 +21,9 @@ namespace ProyectoFinalBLL.Interfaces
 
         // OBTIENE EL HISTORIAL (TRACKING) DE UNA SOLICITUD
         Task<CustomResponse<List<TrackingDto>>> ObtenerTrackingAsync(int idSolicitud);
+
+        // LISTAS LIGERAS (CLIENTES Y USUARIOS)
+        Task<List<ClienteLigeroDto>> ObtenerClientesLigeroAsync();
+        Task<List<UsuarioLigeroDto>> ObtenerUsuariosLigeroAsync();
     }
 }

@@ -2,7 +2,7 @@
     const Rep = {
         // Tabla principal del reporte
         tabla: null,
-        // Mapa de usuarios para mostrar nombre en vez del ID
+        // Mapa de usuarios para mostrar usuario en vez del ID
         usuariosMap: {},
 
         // Inicializa la pantalla
@@ -17,13 +17,14 @@
         // Carga los usuarios para mostrar el nombre en el reporte
         async cargarUsuarios() {
             try {
+                // Puede responder /Usuarios/ObtenerUsuarios
                 const r = await $.get('/Usuarios/ObtenerUsuarios?_ts=' + Date.now());
                 if (r && !r.esError && Array.isArray(r.data)) {
                     const map = {};
                     r.data.forEach(u => {
                         const id = u.id ?? u.Id;
-                        const label = u.userName || u.email || ('Usuario #' + id);
-                        if (id) map[id] = label;
+                        const label = (u.userName ?? u.UserName ?? '') || (u.email ?? u.Email ?? '') || ('Usuario #' + id);
+                        if (id != null) map[String(id)] = label; // forzar llave string
                     });
                     this.usuariosMap = map;
                 } else {
@@ -51,7 +52,10 @@
                     {
                         data: 'usuarioId',
                         title: 'Usuario',
-                        render: (id) => this.usuariosMap[id] || id || ''
+                        render: (id) => {
+                            const key = id != null ? String(id) : '';
+                            return this.usuariosMap[key] || id || '';
+                        }
                     },
                     {
                         data: 'fecha',

@@ -46,6 +46,7 @@ namespace ProyectoFinal.Controllers
         public async Task<IActionResult> ObtenerAprobaciones()
         {
             var data = await _flujo.ObtenerAprobacionesAsync();
+            // Devuelve el formato esperado por DataTables
             return Json(new { data });
         }
 
@@ -95,6 +96,25 @@ namespace ProyectoFinal.Controllers
         public class TrackingPageVm
         {
             public int IdSolicitud { get; set; }
+        }
+
+
+        // ====== Listado ligero de clientes para el mapa JS (IdCliente -> Identificacion) ======
+        [HttpGet]
+        [Route("/Clientes/ObtenerClientes")]
+        public async Task<IActionResult> ObtenerClientes()
+        {
+            var data = await _flujo.ObtenerClientesLigeroAsync();
+            return Json(new { esError = false, data });
+        }
+
+        // ====== Listado ligero de usuarios para el mapa JS (Id -> UserName, Email) ======
+        [HttpGet]
+        [Route("/Usuarios/ObtenerUsuarios")]
+        public async Task<IActionResult> ObtenerUsuarios()
+        {
+            var data = await _flujo.ObtenerUsuariosLigeroAsync();
+            return Json(new { esError = false, data });
         }
     }
 }
