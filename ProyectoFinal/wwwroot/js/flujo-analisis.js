@@ -52,7 +52,7 @@
                         // Botones principales de acción
                         render: (row) => `
               <button class="btn btn-sm btn-outline-primary me-1 mb-1 enviar" data-id="${row.idSolicitud}">Enviar a aprobación</button>
-              <button class="btn btn-sm btn-outline-warning me-1 mb-1 devolver" data-id="${row.idSolicitud}">Devolución</button>
+              <button class="btn btn-sm btn-outline-danger me-1 mb-1 devolver" data-id="${row.idSolicitud}">Devolución</button>
               <a class="btn btn-sm btn-outline-secondary mb-1" href="/FlujoSolicitudes/Tracking?id=${row.idSolicitud}">Tracking</a>`
                     }
                 ],
