@@ -43,7 +43,7 @@ namespace ProyectoFinal.Controllers
         public async Task<IActionResult> ObtenerLigero()
         {
             var data = (await _service.GetAllAsync())
-                .Select(c => new { c.IdCliente, c.Identificacion, c.Nombre });
+                .Select(c => new { c.IdCliente, c.Identificacion, c.Nombre }); //Todo esos filtros se deben hacer en la capa de servicio o repositorio
             return Json(new { esError = false, data });
         }
 

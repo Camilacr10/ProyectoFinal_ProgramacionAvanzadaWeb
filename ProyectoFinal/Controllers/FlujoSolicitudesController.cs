@@ -50,21 +50,13 @@ namespace ProyectoFinal.Controllers
             return Json(new { data });
         }
 
-        // Modelo para cambio de estado
-        public class CambioVm
-        {
-            public int IdSolicitud { get; set; }
-            public string NuevoEstado { get; set; } = "";
-            public string? Comentario { get; set; }
-        }
-
         // =======================
         // CAMBIA EL ESTADO DE UNA SOLICITUD
         // (Analista o Gestor según corresponda)
         // =======================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CambiarEstado(CambioVm m)
+        public async Task<IActionResult> CambiarEstado(CambioEstadoDto m) 
         {
             var resp = await _flujo.CambiarEstadoAsync(m.IdSolicitud, m.NuevoEstado, m.Comentario, User);
 

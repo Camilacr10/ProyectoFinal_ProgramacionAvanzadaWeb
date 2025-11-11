@@ -1,12 +1,21 @@
 ﻿@model ProyectoFinal.Controllers.FlujoSolicitudesController.TrackingPageVm
 @{
     ViewData["Title"] = "Historial de Solicitud";
+    var referrer = Context.Request.Headers["Referer"].ToString();
+    var fallbackUrl = Url.Action("Analisis", "FlujoSolicitudes"); // si no hay historial ni referer
+    var backUrl = !string.IsNullOrWhiteSpace(referrer) ? referrer : fallbackUrl;
 }
 
 <!-- Encabezado con título y botón para volver -->
 <div class="page-header">
     <h2 class="m-0">@ViewData["Title"]</h2>
-    <a asp-action="Analisis" class="btn btn-secondary">← Volver</a>
+    <div class="d-flex gap-2">
+        <a href="@backUrl"
+           class="btn btn-outline-secondary"
+           onclick="if (history.length > 1) { history.back(); return false; }">
+            ← Volver
+        </a>
+    </div>
 </div>
 
 <!-- Campo con el ID de la solicitud (solo lectura) -->
@@ -17,9 +26,9 @@
             <input id="gestionId" class="form-control" value="@Model.IdSolicitud" readonly />
         </div>
 
-        <!-- Botón para cargar el historial -->
+        <!-- Botón para consultar el historial (mismo estilo que el reporte) -->
         <div class="col-md-auto d-flex align-items-end">
-            <button id="btnConsultar" class="btn btn-brand hover-raise">Cargar Historial</button>
+            <button id="btnConsultar" class="btn btn-primary btn-new">Consultar</button>
         </div>
     </div>
 </div>

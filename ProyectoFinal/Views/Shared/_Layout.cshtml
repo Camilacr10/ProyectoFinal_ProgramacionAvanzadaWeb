@@ -20,9 +20,12 @@
                 <ul class="navbar-nav me-auto">
 
                     <!-- Clientes -->
-                    <li class="nav-item">
-                        <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
-                    </li>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link" asp-controller="Clientes" asp-action="Index">Clientes</a>
+                        </li>
+                    }
 
                     <!-- Solicitudes -->
                     @if (User.IsInRole("ServicioAlCliente") || User.IsInRole("Administrador"))

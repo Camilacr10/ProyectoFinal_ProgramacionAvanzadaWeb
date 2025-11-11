@@ -39,7 +39,8 @@ namespace ProyectoFinalBLL.Services
                 Estado = estado,
                 Accion = accion,
                 Comentario = comentario,
-                UsuarioId = userId
+                UsuarioId = userId,
+                Fecha = DateTime.Now
             };
 
             // Guardar en base de datos

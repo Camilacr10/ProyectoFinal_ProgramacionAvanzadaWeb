@@ -9,10 +9,12 @@
     }
 </style>
 
-<!-- Título principal de la pantalla -->
+<!-- Encabezado con título y botón para volver -->
 <div class="page-header">
     <h2 class="m-0">@ViewData["Title"]</h2>
-    <div></div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
+    </div>
 </div>
 
 <!-- Campo para digitar el ID de la solicitud a consultar -->
