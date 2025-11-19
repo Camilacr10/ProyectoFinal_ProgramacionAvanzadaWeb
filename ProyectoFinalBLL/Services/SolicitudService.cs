@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using Microsoft.AspNetCore.Http;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
 using ProyectoFinalDAL.Entidades;
@@ -14,7 +9,7 @@ namespace ProyectoFinalBLL.Services
     public class SolicitudService : ISolicitudService
     {
         private readonly ISolicitudRepository _repo;
-        private readonly IMapper _mapper;
+
         public SolicitudService(ISolicitudRepository repo)
         {
             _repo = repo;
@@ -28,6 +23,8 @@ namespace ProyectoFinalBLL.Services
             var e = await _repo.GetByIdAsync(id);
             return e is null ? null : MapToDto(e);
         }
+
+        // Reglas de negocio
         public async Task<int> CreateAsync(SolicitudDto dto)
         {
             if (dto.Monto > 10_000_000)
@@ -42,6 +39,28 @@ namespace ProyectoFinalBLL.Services
             return entity.IdSolicitud;
         }
 
+        public async Task<int> CreateAsync(SolicitudDto dto, IFormFile? documento, string webRootPath)
+        {
+            if (documento != null && documento.Length > 0)
+            {
+                var uploadsRoot = Path.Combine(webRootPath, "uploads", "solicitudes");
+                Directory.CreateDirectory(uploadsRoot);
+
+                var safeName = Path.GetFileName(documento.FileName);
+                var fileName = $"{Guid.NewGuid()}_{safeName}";
+                var fullPath = Path.Combine(uploadsRoot, fileName);
+
+                using (var stream = File.Create(fullPath))
+                {
+                    await documento.CopyToAsync(stream);
+                }
+
+                dto.DocumentoPath = $"/uploads/solicitudes/{fileName}";
+            }
+
+            return await CreateAsync(dto);
+        }
+
         public async Task UpdateAsync(SolicitudDto dto)
         {
             var current = await _repo.GetByIdAsync(dto.IdSolicitud)
@@ -50,11 +69,16 @@ namespace ProyectoFinalBLL.Services
             current.Monto = dto.Monto;
             current.Estado = dto.Estado;
             current.DocumentoPath = dto.DocumentoPath;
+            current.Comentarios = dto.Comentarios;
             await _repo.UpdateAsync(current);
             await _repo.SaveChangesAsync();
         }
+
         public async Task DeleteAsync(int id)
         {
+            var current = await _repo.GetByIdAsync(id)
+                ?? throw new KeyNotFoundException("La solicitud no existe o ya fue eliminada.");
+
             await _repo.DeleteAsync(id);
             await _repo.SaveChangesAsync();
         }
@@ -84,6 +108,5 @@ namespace ProyectoFinalBLL.Services
             DocumentoPath = d.DocumentoPath,
             Comentarios = d.Comentarios
         };
-
     }
 }

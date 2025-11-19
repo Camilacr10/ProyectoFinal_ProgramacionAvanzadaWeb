@@ -1,19 +1,22 @@
 ﻿(() => {
     const Solicitudes = {
+        ultimoIdCreado: null,
+
         init() {
-            this.bindCedulaSelect(); // nuevo
+            this.bindCedulaSelect();
             this.bindCreate();
             this.bindDelete();
+            this.bindModalActions();
         },
 
-        // ====== CÉDULA / CLIENTE ======
+        // Validar Cedula
         bindCedulaSelect() {
             const cedulaSelect = document.getElementById('CedulaSelect');
             const idClienteInput = document.getElementById('IdCliente');
             const nombreInput = document.getElementById('NombreCliente');
             const apellidoInput = document.getElementById('ApellidoCliente');
 
-            if (!cedulaSelect) return; // Solo aplica en Create
+            if (!cedulaSelect) return;
 
             cedulaSelect.addEventListener('change', () => {
                 const opt = cedulaSelect.selectedOptions[0];
@@ -24,18 +27,17 @@
                     return;
                 }
 
-                // Cargar datos desde los atributos del <option>
                 idClienteInput.value = opt.getAttribute('data-idcliente') || '';
                 nombreInput.value = opt.getAttribute('data-nombre') || '';
                 apellidoInput.value = opt.getAttribute('data-apellido') || '';
             });
         },
 
-        // ====== CREATE ======
+        // Create
         bindCreate() {
             const form = document.getElementById('formCrearSolicitud');
             const btn = document.getElementById('btnGuardarSolicitud');
-            if (!form || !btn) return; // no estamos en página de creación
+            if (!form || !btn) return;
 
             form.addEventListener('submit', (e) => e.preventDefault());
             btn.addEventListener('click', () => this.crearSolicitud(form));
@@ -58,7 +60,6 @@
                 .then(async r => {
                     const ct = r.headers.get('content-type') || '';
                     if (!ct.includes('application/json')) {
-                        // Si la acción devuelve HTML por redirect, redirigimos a Index
                         window.location.href = '/Solicitudes/Index';
                         return null;
                     }
@@ -67,7 +68,20 @@
                 .then(response => {
                     if (!response) return;
 
-                    if (response && response.success) {
+                    const modalEl = document.getElementById('modalSolicitudExitosa');
+                    const msgEl = document.getElementById('mensajeSolicitudExitosa');
+                    const titleEl = document.getElementById('tituloModalSolicitud');
+                    const btnTrack = document.getElementById('btnVerTrackingModal');
+
+                    if (!modalEl || !msgEl || !titleEl || !window.bootstrap?.Modal) {
+                        const msg = (response && (response.message || response.error)) || 'Hubo un error, por favor intente de nuevo.';
+                        alert(msg);
+                        return;
+                    }
+
+                    const modal = new bootstrap.Modal(modalEl);
+
+                    if (response.success) {
                         const cedulaSel = document.getElementById('CedulaSelect');
                         const cedulaTxt = cedulaSel?.selectedOptions[0]?.value || '';
                         const montoNumber = Number(document.getElementById('Monto')?.value || 0);
@@ -79,52 +93,72 @@
                             <strong>₡${montoNumber.toLocaleString('es-CR')}</strong>.
                         `;
 
-                        const msgEl = document.getElementById('mensajeSolicitudExitosa');
-                        if (msgEl) msgEl.innerHTML = mensaje;
-                        const modalEl = document.getElementById('modalSolicitudExitosa');
-                        if (modalEl && window.bootstrap?.Modal) {
-                            new bootstrap.Modal(modalEl).show();
+                        titleEl.textContent = 'Solicitud creada';
+                        msgEl.innerHTML = mensaje;
+
+                        const id = response.idSolicitud || response.IdSolicitud || response.data?.idSolicitud;
+                        Solicitudes.ultimoIdCreado = id || null;
+
+                        if (btnTrack) {
+                            btnTrack.style.display = id ? 'inline-block' : 'none';
                         }
 
                         form.reset();
-
-                        const id = response.idSolicitud || response.IdSolicitud || response.data?.idSolicitud;
-                        if (id && window.Swal) {
-                            Swal.fire({
-                                title: 'Solicitud creada',
-                                html: mensaje + '<br><br>¿Deseas ver el tracking?',
-                                icon: 'success',
-                                showCancelButton: true,
-                                confirmButtonText: 'Ver tracking',
-                                cancelButtonText: 'Cerrar'
-                            }).then(r => {
-                                if (r.isConfirmed) {
-                                    window.location.href = `/FlujoSolicitudes/Tracking?id=${encodeURIComponent(id)}`;
-                                }
-                            });
-                        } else {
-                            window.location.href = '/Solicitudes/Index';
-                        }
-
+                        modal.show();
                     } else {
                         const msg = (response && (response.message || response.error)) || 'Hubo un error, por favor intente de nuevo.';
-                        if (window.Swal) {
-                            Swal.fire({ title: 'Error', text: msg, icon: 'error' });
-                        } else {
-                            alert(msg);
+
+                        titleEl.textContent = 'No se pudo crear la solicitud';
+                        msgEl.innerHTML = `<span class="text-danger">${msg}</span>`;
+                        Solicitudes.ultimoIdCreado = null;
+
+                        if (btnTrack) {
+                            btnTrack.style.display = 'none';
                         }
+
+                        modal.show();
                     }
                 })
                 .catch(() => {
-                    if (window.Swal) {
-                        Swal.fire({ title: 'Error', text: 'No se pudo procesar la solicitud.', icon: 'error' });
+                    const modalEl = document.getElementById('modalSolicitudExitosa');
+                    const msgEl = document.getElementById('mensajeSolicitudExitosa');
+                    const titleEl = document.getElementById('tituloModalSolicitud');
+
+                    if (modalEl && msgEl && titleEl && window.bootstrap?.Modal) {
+                        titleEl.textContent = 'Error de conexión';
+                        msgEl.innerHTML = '<span class="text-danger">No se pudo procesar la solicitud.</span>';
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
                     } else {
                         alert('No se pudo procesar la solicitud.');
                     }
                 });
         },
 
-        // ====== DELETE ======
+        // Modal actions
+        bindModalActions() {
+            const btnListado = document.getElementById('btnVerListadoModal');
+            const btnTracking = document.getElementById('btnVerTrackingModal');
+
+            if (btnListado) {
+                btnListado.addEventListener('click', () => {
+                    window.location.href = '/Solicitudes/Index';
+                });
+            }
+
+            if (btnTracking) {
+                btnTracking.addEventListener('click', () => {
+                    if (!Solicitudes.ultimoIdCreado) {
+                        window.location.href = '/Solicitudes/Index';
+                        return;
+                    }
+                    const id = encodeURIComponent(Solicitudes.ultimoIdCreado);
+                    window.location.href = `/FlujoSolicitudes/Tracking?id=${id}`;
+                });
+            }
+        },
+
+        // DELETE
         bindDelete() {
             const table = document.getElementById('tablaSolicitudes');
             if (!table) return;

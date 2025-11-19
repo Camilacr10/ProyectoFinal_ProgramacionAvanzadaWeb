@@ -1,4 +1,5 @@
-﻿using ProyectoFinalBLL.DTOs;
+﻿using Microsoft.AspNetCore.Http;
+using ProyectoFinalBLL.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,7 @@ namespace ProyectoFinalBLL.Interfaces
         Task UpdateAsync(SolicitudDto dto);
         Task DeleteAsync(int id);
         Task<bool> SolicitudConflictiva(int idCliente);
+        Task<int> CreateAsync(SolicitudDto dto, IFormFile? documento, string webRootPath);
+
     }
 }

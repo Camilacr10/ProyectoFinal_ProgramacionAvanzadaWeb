@@ -11,10 +11,15 @@ namespace ProyectoFinalBLL.DTOs
     public class SolicitudDto
     {
         public int IdSolicitud { get; set; }
+
         [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Selecciona una cédula válida.")]
         public int IdCliente { get; set; }
-        [Required, Range(0.01, 10000000, ErrorMessage = "Este monto debe de ser igual o menor a 10, 000, 000")]
+
+        [Required]
+        [Range(0.01, 10000000, ErrorMessage = "Este monto debe de ser igual o menor a 10, 000, 000")]
         public decimal Monto { get; set; }
+
         public string Estado { get; set; } = "Registrado";
         public DateTime FechaSolicitud { get; set; } = DateTime.Now;
 
