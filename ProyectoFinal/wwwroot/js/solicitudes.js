@@ -7,6 +7,12 @@
             this.bindCreate();
             this.bindDelete();
             this.bindModalActions();
+            const modalCrear = document.getElementById('modalCrearSolicitud');
+            if (modalCrear) {
+                modalCrear.addEventListener('hidden.bs.modal', () => {
+                    window.location.reload();
+                });
+            }
         },
 
         // Validar Cedula
