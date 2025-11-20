@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using ProyectoFinalBLL.DTOs;
 using ProyectoFinalBLL.Interfaces;
 using ProyectoFinalDAL.Entidades;
@@ -10,10 +11,19 @@ namespace ProyectoFinalBLL.Services
     {
         private readonly ISolicitudRepository _repo;
 
-        public SolicitudService(ISolicitudRepository repo)
+
+        //Necesario para el tracking
+
+        private readonly ITrackingServicio _tracking; // Servicio de tracking
+        private readonly IHttpContextAccessor _httpContextAccessor; // Acceso al contexto HTTP para obtener el usuario logeado
+
+        public SolicitudService(ISolicitudRepository repo, ITrackingServicio tracking, IHttpContextAccessor httpContextAccessor)
         {
             _repo = repo;
+            _tracking = tracking;
+            _httpContextAccessor = httpContextAccessor;
         }
+
 
         public async Task<List<SolicitudDto>> GetAllAsync()
             => (await _repo.GetAllAsync()).Select(MapToDto).ToList();
@@ -36,8 +46,43 @@ namespace ProyectoFinalBLL.Services
             var entity = MapToEntity(dto);
             await _repo.AddAsync(entity);
             await _repo.SaveChangesAsync();
+
+
+
+            // ================================
+            // Registrar el tracking de creación
+            // ================================
+
+            try
+            {
+                // Se obtiene el usuario logueado
+
+                var user = _httpContextAccessor.HttpContext?.User; // Usuario logueado
+
+                // Obtener el identificador del usuario
+                var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                             ?? user?.Identity?.Name
+                             ?? "sistema";
+
+                // Guarda el movimiento
+                await _tracking.GuardarAsync(
+                    entity.IdSolicitud,
+                    dto.Estado ?? "Registrado",
+                    "Crear",
+                    dto.Comentarios,
+                    userId
+                );
+            }
+            catch
+            {
+                // Si el tracking falla no afecta la creación
+            }
+
+
+
             return entity.IdSolicitud;
         }
+
 
         public async Task<int> CreateAsync(SolicitudDto dto, IFormFile? documento, string webRootPath)
         {
