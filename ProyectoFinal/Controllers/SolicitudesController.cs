@@ -26,6 +26,8 @@ namespace ProyectoFinal.Controllers
             TempData.Remove("error");
 
             var solicitudes = await _service.GetAllAsync();
+            ViewBag.Clientes = await _clientes.GetAllAsync();
+
             return View(solicitudes);
         }
 

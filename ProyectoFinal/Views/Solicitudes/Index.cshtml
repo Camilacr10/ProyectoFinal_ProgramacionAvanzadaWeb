@@ -1,4 +1,6 @@
 ﻿@model IEnumerable<ProyectoFinalBLL.DTOs.SolicitudDto>
+@using ProyectoFinalBLL.DTOs
+
 @{
     ViewData["Title"] = "Solicitudes";
 }
@@ -31,7 +33,12 @@
     <h2 class="m-0">Solicitudes</h2>
     <div class="d-flex gap-2">
         <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
-        <a asp-action="Create" class="btn btn-primary">Crear Solicitud</a>
+        <button type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#modalCrearSolicitud">
+            Crear Solicitud
+        </button>
     </div>
 </div>
 
@@ -62,7 +69,6 @@ else
                     var cedula = s.Cliente?.Identificacion ?? "-";
                     var nombre = s.Cliente is null ? "-" : $"{s.Cliente.Nombre} {s.Cliente.Apellido}";
                     var doc = s.DocumentoPath;
-                    var estado = s.Estado ?? "Registrado";
                     <tr>
                         <td>@s.IdSolicitud</td>
                         <td>@cedula</td>
@@ -92,14 +98,12 @@ else
                                 Eliminar
                             </button>
 
-                            <!-- formulario oculto existente -->
                             <form asp-action="Delete"
                                   asp-route-id="@s.IdSolicitud"
                                   method="post"
                                   class="d-inline delete-form-@s.IdSolicitud">
                                 @Html.AntiForgeryToken()
                             </form>
-
                         </td>
                     </tr>
                 }
@@ -107,6 +111,52 @@ else
         </table>
     </div>
 }
+
+<div class="modal fade" id="modalCrearSolicitud" tabindex="-1" aria-labelledby="modalCrearSolicitudLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCrearSolicitudLabel">Crear Nueva Solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                @await Html.PartialAsync("Create", new SolicitudDto())
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalSolicitudExitosa" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tituloModalSolicitud">Resultado de la solicitud</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p id="mensajeSolicitudExitosa" class="mb-0"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+                <button type="button"
+                        class="btn btn-outline-primary"
+                        id="btnVerListadoModal">
+                    Ir al listado
+                </button>
+                <button type="button"
+                        class="btn btn-primary"
+                        id="btnVerTrackingModal">
+                    Ver tracking
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
