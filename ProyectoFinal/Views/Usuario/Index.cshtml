@@ -1,47 +1,79 @@
-﻿@using Microsoft.EntityFrameworkCore
-@using ProyectoFinalDAL.Entidades
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> UserManager
-
+﻿@model IEnumerable<ProyectoFinal.Controllers.UsuarioViewModel>
 @{
     ViewData["Title"] = "Usuarios";
-    var usuarios = await UserManager.Users.ToListAsync();
 }
 
 <div class="page-header">
     <h2 class="m-0">@ViewData["Title"]</h2>
-    <div class="text-end">
+    <div class="d-flex gap-2">
         <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">← Volver</a>
-        <a asp-controller="Usuario" asp-action="Create" class="btn btn-primary hover-raise">Crear Usuario</a>
+        <a href="javascript:void(0)" class="btn btn-primary btn-new">Crear Usuario</a>
     </div>
 </div>
 
-<div class="card-table">
-    <div class="table-wrapper">
-        <table class="table table-hover align-middle m-0">
+@if (Model == null || !Model.Any())
+{
+    <div class="alert alert-info">No hay usuarios registrados.</div>
+}
+else
+{
+    <div class="card-table">
+        <table id="tablaUsuarios" class="table table-hover align-middle m-0">
             <thead>
                 <tr>
                     <th>Nombre completo</th>
                     <th>Email</th>
                     <th>Roles</th>
-                    <th class="table-actions">Acciones</th>
+                    <th class="text-end">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in usuarios)
+                @foreach (var user in Model)
                 {
-                    var roles = await UserManager.GetRolesAsync(user);
                     <tr>
                         <td>@user.NombreCompleto</td>
                         <td>@user.Email</td>
-                        <td>@string.Join(", ", roles)</td>
-                        <td class="table-actions">
-                            <a asp-controller="Usuario" asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary">Editar</a>
-                            <a asp-controller="Usuario" asp-action="Delete" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger">Eliminar</a>
+                        <td>@string.Join(", ", user.Roles ?? new List<string>())</td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-edit"
+                                    data-id="@user.Id">
+                                Editar
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-delete"
+                                    data-id="@user.Id">
+                                Eliminar
+                            </button>
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
     </div>
+}
+
+<!-- Modal reutilizable -->
+<div class="modal fade" id="crudModal" tabindex="-1" aria-hidden="true"
+     data-create-get="@Url.Action("CreateModal", "Usuario")"
+     data-create-post="@Url.Action("CreateModal", "Usuario")"
+     data-edit-get="@Url.Action("EditModal", "Usuario")"
+     data-edit-post="@Url.Action("EditModal", "Usuario")"
+     data-delete-get="@Url.Action("DeleteModal", "Usuario")"
+     data-delete-post="@Url.Action("DeleteModalConfirmed", "Usuario")">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title" id="crudTitle">Gestión de usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="crudBody">
+                <div class="text-center text-muted py-5">Cargando…</div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/usuarios.js"></script>
+}

@@ -5,7 +5,7 @@ using ProyectoFinalDAL.Entidades;
 
 namespace ProyectoFinal.Controllers
 {
-    [Authorize(Roles = "Administrador")] // Solo admin puede acceder
+    [Authorize(Roles = "Administrador")]
     public class UsuarioController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -118,7 +118,6 @@ namespace ProyectoFinal.Controllers
                 return View(model);
             }
 
-            // Actualizar roles
             var currentRoles = await _userManager.GetRolesAsync(user);
             await _userManager.RemoveFromRolesAsync(user, currentRoles);
 
@@ -153,6 +152,130 @@ namespace ProyectoFinal.Controllers
 
             await _userManager.DeleteAsync(user);
             return RedirectToAction(nameof(Index));
+        }
+
+        // ----------------------------
+        // MODALES PARA AJAX
+        // ----------------------------
+
+        // GET: Create Modal
+        public IActionResult CreateModal()
+        {
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            return PartialView("_CreateModalUsuario", new CreateUsuarioViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateModal(CreateUsuarioViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return PartialView("_CreateModalUsuario", model);
+            }
+
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                NombreCompleto = model.NombreCompleto,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+            if (!result.Succeeded)
+            {
+                foreach (var err in result.Errors) ModelState.AddModelError("", err.Description);
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return PartialView("_CreateModalUsuario", model);
+            }
+
+            if (model.Roles != null)
+                await _userManager.AddToRolesAsync(user, model.Roles);
+
+            return Json(new { success = true });
+        }
+
+        // GET: Edit Modal
+        public async Task<IActionResult> EditModal(string id)
+        {
+            if (id == null) return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var model = new EditUsuarioViewModel
+            {
+                Id = user.Id,
+                NombreCompleto = user.NombreCompleto,
+                Email = user.Email,
+                Roles = await _userManager.GetRolesAsync(user)
+            };
+
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+            return PartialView("_EditModalUsuario", model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditModal(EditUsuarioViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return PartialView("_EditModalUsuario", model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            user.NombreCompleto = model.NombreCompleto;
+            user.Email = model.Email;
+            user.UserName = model.Email;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                foreach (var err in result.Errors) ModelState.AddModelError("", err.Description);
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return PartialView("_EditModalUsuario", model);
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+            if (model.Roles != null)
+                await _userManager.AddToRolesAsync(user, model.Roles);
+
+            return Json(new { success = true });
+        }
+
+        // GET: Delete Modal
+        public async Task<IActionResult> DeleteModal(string id)
+        {
+            if (id == null) return NotFound();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var model = new UsuarioViewModel
+            {
+                Id = user.Id,
+                NombreCompleto = user.NombreCompleto,
+                Email = user.Email,
+                Roles = await _userManager.GetRolesAsync(user)
+            };
+
+            return PartialView("_DeleteModalUsuario", model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteModalConfirmed(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            await _userManager.DeleteAsync(user);
+            return Json(new { success = true });
         }
     }
 

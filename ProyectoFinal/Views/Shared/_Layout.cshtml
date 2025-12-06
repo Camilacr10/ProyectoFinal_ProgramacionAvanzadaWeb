@@ -8,11 +8,38 @@
     <!-- Estilos principales -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+
+    <style>
+        /* Ícono de 3 líneas */
+        .menu-icon {
+            width: 28px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: default;
+            opacity: 0.4;
+        }
+
+            .menu-icon div {
+                height: 4px;
+                background-color: #000;
+                border-radius: 5px;
+            }
+    </style>
 </head>
 <body>
+
     <!-- Barra superior -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
+
+            <!-- Ícono visible pero NO funcional -->
+            <div class="me-3 menu-icon">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
 
             <!-- Logo del sistema -->
             @if (User.Identity.IsAuthenticated)
@@ -67,7 +94,7 @@
                         </li>
                     }
 
-                    <!-- Usuarios -->
+                    <!-- Usuarios (corregido: plural) -->
                     @if (User.IsInRole("Administrador"))
                     {
                         <li class="nav-item">
@@ -99,11 +126,28 @@
         @RenderBody()
     </div>
 
+    <!-- MODAL GLOBAL — requerido por Usuarios -->
+    <div class="modal fade" id="mainModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mainModalTitle"></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modalContent"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js"></script>
 
+    <!-- Script de modales (global) -->
+    <script src="~/js/sgc.modals.js"></script>
+
+    <!-- Sección para scripts de vistas -->
     @RenderSection("Scripts", required: false)
 </body>
 </html>
