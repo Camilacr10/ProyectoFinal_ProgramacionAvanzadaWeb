@@ -13,8 +13,16 @@
     <!-- Barra superior -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <div class="container-fluid">
+
             <!-- Logo del sistema -->
-            <a class="navbar-brand" asp-controller="Home" asp-action="Index">SGC</a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">SGC</a>
+            }
+            else
+            {
+                <a class="navbar-brand disabled" tabindex="-1" aria-disabled="true">SGC</a>
+            }
 
             <div class="collapse navbar-collapse">
                 <ul class="navbar-nav me-auto">
