@@ -15,6 +15,9 @@ $(document).ready(function () {
         $.get(url)
             .done(function (data) {
                 $modalBody.html(data);
+
+                // Activar validaciones ASP.NET MVC
+                $.validator.unobtrusive.parse($modalBody.find('form'));
             })
             .fail(function () {
                 $modalBody.html('<div class="alert alert-danger">Error al cargar el contenido</div>');
@@ -45,14 +48,19 @@ $(document).ready(function () {
     });
 
     // ------------------------
-    // Enviar formulario via AJAX
+    // Enviar formulario vía AJAX
     // ------------------------
-    $(document).on('submit', 'form', function (e) {
+    $(document).on('submit', '#crudBody form', function (e) {
         e.preventDefault();
         var $form = $(this);
+
         var url = $form.attr('action');
         var method = $form.attr('method') || 'POST';
         var data = $form.serialize();
+
+        // Botón correcto independientemente del modal recargado
+        var $submitBtn = $form.find('button[type="submit"]');
+        $submitBtn.prop('disabled', true).text('Guardando...');
 
         $.ajax({
             url: url,
@@ -62,15 +70,21 @@ $(document).ready(function () {
             .done(function (response) {
                 if (response.success) {
                     $modal.modal('hide');
-                    // Recargar la página para actualizar la tabla
                     location.reload();
                 } else {
-                    // Si devuelve HTML, reemplazamos el contenido del modal
+                    // Reemplazar HTML con errores
                     $modalBody.html(response);
+
+                    // Importante: volver a activar validaciones
+                    $.validator.unobtrusive.parse($modalBody.find('form'));
                 }
             })
             .fail(function () {
                 Swal.fire('Error', 'Ha ocurrido un error al procesar la solicitud', 'error');
+            })
+            .always(function () {
+                // Reactivar botón correctamente
+                $submitBtn.prop('disabled', false).text('Guardar');
             });
     });
 });

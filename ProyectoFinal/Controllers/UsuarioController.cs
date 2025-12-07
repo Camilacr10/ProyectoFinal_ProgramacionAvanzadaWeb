@@ -105,6 +105,18 @@ namespace ProyectoFinal.Controllers
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
 
+            // --------------------------------------
+            // VALIDACIÓN DE CORREO DUPLICADO
+            // --------------------------------------
+            var emailExistente = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExistente != null && emailExistente.Id != model.Id)
+            {
+                ModelState.AddModelError("Email", "El correo ingresado ya está en uso.");
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return View(model);
+            }
+            // --------------------------------------
+
             user.NombreCompleto = model.NombreCompleto;
             user.Email = model.Email;
             user.UserName = model.Email;
@@ -168,11 +180,40 @@ namespace ProyectoFinal.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateModal(CreateUsuarioViewModel model)
         {
+            ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+
             if (!ModelState.IsValid)
+                return PartialView("_CreateModalUsuario", model);
+
+            // ------------------------------------------------
+            // VALIDACIÓN DE CONTRASEÑA (SOLO AÑADIDO)
+            // ------------------------------------------------
+            var password = model.Password;
+
+            bool tieneMayuscula = password.Any(char.IsUpper);
+            bool tieneNumero = password.Any(char.IsDigit);
+            bool tieneSimbolo = password.Any(ch => !char.IsLetterOrDigit(ch));
+
+            if (!tieneMayuscula || !tieneNumero || !tieneSimbolo)
             {
-                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                ModelState.AddModelError("Password",
+                    "La contraseña debe incluir al menos: Una mayúscula, un número y un símbolo especial.");
+
                 return PartialView("_CreateModalUsuario", model);
             }
+            // ------------------------------------------------
+
+
+            // ----------------------------
+            // VALIDACIÓN DE CORREO DUPLICADO
+            // ----------------------------
+            var emailExistente = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExistente != null)
+            {
+                ModelState.AddModelError("Email", "El correo ingresado ya está en uso.");
+                return PartialView("_CreateModalUsuario", model);
+            }
+            // ----------------------------
 
             var user = new ApplicationUser
             {
@@ -183,10 +224,12 @@ namespace ProyectoFinal.Controllers
             };
 
             var result = await _userManager.CreateAsync(user, model.Password);
+
             if (!result.Succeeded)
             {
-                foreach (var err in result.Errors) ModelState.AddModelError("", err.Description);
-                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                foreach (var err in result.Errors)
+                    ModelState.AddModelError("", err.Description);
+
                 return PartialView("_CreateModalUsuario", model);
             }
 
@@ -195,6 +238,7 @@ namespace ProyectoFinal.Controllers
 
             return Json(new { success = true });
         }
+
 
         // GET: Edit Modal
         public async Task<IActionResult> EditModal(string id)
@@ -227,6 +271,18 @@ namespace ProyectoFinal.Controllers
 
             var user = await _userManager.FindByIdAsync(model.Id);
             if (user == null) return NotFound();
+
+            // --------------------------------------
+            // VALIDACIÓN DE CORREO DUPLICADO (MODAL)
+            // --------------------------------------
+            var emailExistente = await _userManager.FindByEmailAsync(model.Email);
+            if (emailExistente != null && emailExistente.Id != model.Id)
+            {
+                ModelState.AddModelError("Email", "El correo ingresado ya está en uso.");
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return PartialView("_EditModalUsuario", model);
+            }
+            // --------------------------------------
 
             user.NombreCompleto = model.NombreCompleto;
             user.Email = model.Email;
